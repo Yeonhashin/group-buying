@@ -1,57 +1,111 @@
-HELP.md
-.gradle
-build/
-!gradle/wrapper/gradle-wrapper.jar
-!**/src/main/**/build/
-!**/src/test/**/build/
-
-### STS ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
-bin/
-!**/src/main/**/bin/
-!**/src/test/**/bin/
-
-### IntelliJ IDEA ###
-.idea
-*.iws
-*.iml
-*.ipr
-out/
-!**/src/main/**/out/
-!**/src/test/**/out/
-
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
-
-### VS Code ###
-.vscode/
-
-# database
-data/
-mysql-data/
-
-# logs
-logs/
-*.log
-
-# build
-build/
-target/
+# =========================
 
 # OS
+
+# =========================
+
 .DS_Store
 Thumbs.db
+desktop.ini
 
-# docker
-*.pid
-*.sock
+# =========================
+
+# IDE / Editor
+
+# =========================
+
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+out/
+
+# =========================
+
+# Environment
+
+# =========================
+
+.env
+.env.local
+.env.*.local
+
+# =========================
+
+# Logs
+
+# =========================
+
+*.log
+logs/
+
+# =========================
+
+# Node / React / Vite
+
+# =========================
+
+node_modules/
+dist/
+build/
+coverage/
+.npm
+.eslintcache
+vite.svg
+
+# =========================
+
+# Java / Spring / Gradle
+
+# =========================
+
+.gradle/
+build/
+target/
+*.class
+
+# Gradle wrapper cache
+
+gradle-app.setting
+!gradle-wrapper.jar
+
+# =========================
+
+# Temporary files
+
+# =========================
+
+*.tmp
+*.swp
+*.swo
+*~
+
+# =========================
+
+# Database / Local runtime
+
+# =========================
+
+*.db
+*.sqlite
+*.sqlite3
+
+# =========================
+
+# Docker
+
+# =========================
+
+docker-data/
+mysql-data/
+data/
+
+# =========================
+
+# Test output
+
+# =========================
+
+test-output/
+surefire-reports/
