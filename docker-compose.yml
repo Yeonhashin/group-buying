@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: groupbuy-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_DATABASE: groupbuy
+    ports:
+      - "3307:3306"
+    volumes:
+      - ./data/mysql:/var/lib/mysql

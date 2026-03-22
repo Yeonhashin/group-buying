@@ -35,3 +35,23 @@ out/
 
 ### VS Code ###
 .vscode/
+
+# database
+data/
+mysql-data/
+
+# logs
+logs/
+*.log
+
+# build
+build/
+target/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# docker
+*.pid
+*.sock
