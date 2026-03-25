@@ -22,11 +22,11 @@ public class AuthService {
     public String login (LoginRequest request) {
         // 1. 사용자 조회
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new ResourceNotFoundException("Invalid email or password"));
+                .orElseThrow(() -> new UnauthorizedException("이메일 또는 비밀번호가 올바르지 않습니다."));
 
         // 2. 비밀번호 검증
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new UnauthorizedException("Invalid email or password");
+            throw new UnauthorizedException("이메일 또는 비밀번호가 올바르지 않습니다.");
         }
 
         // 3. JWT 생성

@@ -11,9 +11,35 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import com.hayeon.groupbuy.global.exception.ResourceNotFoundException;
 import com.hayeon.groupbuy.global.exception.ConflictException;
 import com.hayeon.groupbuy.global.exception.UnauthorizedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import java.util.HashMap;
+import java.time.LocalDateTime;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
+
+    // 유효성 검사
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<CommonResponse<Map<String, String>>> handleValidation(MethodArgumentNotValidException ex) {
+        Map<String, String> errors = ex.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .collect(Collectors.toMap(
+                        fieldError -> fieldError.getField(),
+                        fieldError -> fieldError.getDefaultMessage()
+                ));
+
+        return ResponseEntity.badRequest()
+                .body(CommonResponse.<Map<String, String>>builder()
+                        .success(false)
+                        .message("유효성 검사 실패")
+                        .status(HttpStatus.BAD_REQUEST.value())
+                        .timestamp(LocalDateTime.now())
+                        .data(errors)
+                        .build());
+    }
 
     // 400 Bad Request
     @ExceptionHandler(IllegalArgumentException.class)
@@ -25,10 +51,15 @@ public class GlobalExceptionHandler {
 
     // 401 Unauthorized
     @ExceptionHandler(UnauthorizedException.class)
-    public ResponseEntity<CommonResponse<Void>> handleUnauthorized(UnauthorizedException e) {
-        return ResponseEntity
-                .status(HttpStatus.UNAUTHORIZED)
-                .body(CommonResponse.fail(e.getMessage(), 401));
+    public ResponseEntity<CommonResponse<String>> handleUnauthorized(UnauthorizedException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(CommonResponse.<String>builder()
+                        .success(false)
+                        .message(ex.getMessage())
+                        .status(HttpStatus.UNAUTHORIZED.value())
+                        .timestamp(LocalDateTime.now())
+                        .data(null)
+                        .build());
     }
 
     // 404 Not Found

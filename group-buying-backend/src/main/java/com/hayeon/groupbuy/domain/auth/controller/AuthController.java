@@ -20,13 +20,8 @@ import com.hayeon.groupbuy.global.exception.UnauthorizedException;
 public class AuthController {
     private final AuthService authService;
 
-//    @PostMapping("/login")
-//    public LoginResponse login (@Valid @RequestBody LoginRequest request) {
-//        return authService.login(request);
-//    }
-
     @PostMapping("/login")
-    public ResponseEntity<CommonResponse<String>> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<CommonResponse<String>> login(@Valid @RequestBody LoginRequest request) {
         String token = authService.login(request);
 
         return ResponseEntity.ok(
@@ -35,7 +30,7 @@ public class AuthController {
                         .message("로그인 성공")
                         .status(HttpStatus.OK.value())
                         .timestamp(LocalDateTime.now())
-                        .data(token)
+                        .data("Bearer " + token)
                         .build()
         );
     }

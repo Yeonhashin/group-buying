@@ -7,6 +7,7 @@ import com.hayeon.groupbuy.global.response.CommonResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/users")
@@ -16,12 +17,24 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping("/signup")
-    public ResponseEntity<CommonResponse<Void>> signup(@RequestBody SignUpRequest request) {
+    public ResponseEntity<CommonResponse<Void>> signup(@Valid @RequestBody SignUpRequest request) {
 
         userService.signup(request);
 
         return ResponseEntity.ok(
                 CommonResponse.success(null)
+        );
+    }
+
+    @GetMapping("/check-email")
+    public ResponseEntity<CommonResponse<Boolean>> checkEmail(
+            @RequestParam String email
+    ) {
+
+        boolean exists = userService.checkEmail(email);
+
+        return ResponseEntity.ok(
+                CommonResponse.success(exists)
         );
     }
 

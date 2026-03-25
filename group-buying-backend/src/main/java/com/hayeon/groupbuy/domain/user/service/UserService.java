@@ -40,12 +40,18 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public UserResponse me() {
-        Long userId = SecurityUtil.getCurrentUserId()
-                .orElseThrow(() -> new RuntimeException("로그인 필요"));
+    public boolean checkEmail(String email) {
+        return userRepository.existsByEmail(email);
+    }
 
+    public UserResponse me() {
+        // 로그인 사용자 확인
+        Long userId = SecurityUtil.getCurrentUserId()
+                .orElseThrow(UnauthorizedException::new);
+
+        // 사용자 조회
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("유저 없음"));
+                .orElseThrow(UserNotFoundException::new);
 
         return new UserResponse(user.getEmail(), user.getNickname(), user.getCreatedAt());
     }
