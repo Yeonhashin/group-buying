@@ -20,11 +20,14 @@ export async function apiFetch(url, options = {}) {
         headers,
     });
 
-    const data = await response.json();
-
     if (!response.ok) {
-        throw new Error(data.message || "API 요청 실패");
+
+        const text = await response.text();
+
+        throw new Error(text || "API 요청 실패");
     }
 
-    return data;
+    const text = await response.text();
+
+    return text ? JSON.parse(text) : null;
 }

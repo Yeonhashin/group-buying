@@ -1,40 +1,49 @@
-import { useEffect, useState } from "react";
-import { getProducts } from "../api/productApi";
+import ProductCard from "../components/ProductCard";
+import { useProducts } from "../hooks/useProducts.js";
 
-export default function ProductListPage() {
+const ProductListPage = () => {
 
-    const [products, setProducts] = useState([]);
+    const { products, loading, error } = useProducts();
 
-    useEffect(() => {
+    if (loading) {
+        return <div>상품을 불러오는 중...</div>;
+    }
 
-        async function fetchProducts() {
-
-            try {
-
-                const res = await getProducts();
-
-                setProducts(res.data);
-
-            } catch (err) {
-
-                console.error(err);
-
-            }
-
-        }
-
-        fetchProducts();
-
-    }, []);
+    if (error) {
+        return <div>상품 조회 실패</div>;
+    }
 
     return (
-        <div>
+
+        <div style={styles.container}>
+
             <h1>상품 목록</h1>
 
-            {products.map((p) => (
-                <div key={p.id}>{p.name}</div>
-            ))}
+            <div style={styles.list}>
+
+                {products.map((product) => (
+                    <ProductCard
+                        key={product.id}
+                        product={product}
+                    />
+                ))}
+
+            </div>
 
         </div>
+
     );
-}
+};
+
+const styles = {
+    container: {
+        padding: "40px"
+    },
+
+    list: {
+        display: "flex",
+        flexWrap: "wrap"
+    }
+};
+
+export default ProductListPage;
