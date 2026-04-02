@@ -30,11 +30,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String uri = request.getRequestURI();
 
-        // 인증 필요 없는 API는 필터 통과
-        if (uri.startsWith("/api/auth")
-                || uri.startsWith("/api/products")
-                || uri.equals("/api/users/signup")
-                || uri.equals("/api/users/check-email")) {
+        // 로그인 / 회원가입은 JWT 검사 제외
+        if (uri.startsWith("/api/auth") ||
+                uri.equals("/api/users/signup") ||
+                uri.equals("/api/users/check-email")) {
 
             filterChain.doFilter(request, response);
             return;
@@ -60,8 +59,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                 userDetails.getAuthorities()
                         );
 
-                SecurityContextHolder
-                        .getContext()
+                SecurityContextHolder.getContext()
                         .setAuthentication(authentication);
             }
         }

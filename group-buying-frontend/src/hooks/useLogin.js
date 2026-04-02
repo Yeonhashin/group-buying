@@ -14,10 +14,12 @@ export default function useLogin() {
 
         try {
             const res = await login(data);
+            console.log("login response:", res);
 
             // JWT 저장
-            localStorage.setItem("accessToken", res.data);
-
+            const token = res.data;
+            localStorage.setItem("accessToken", token);
+            console.log("token:", token);
             // 로그인 성공 후 상품 목록 페이지 이동
             navigate("/products");
 

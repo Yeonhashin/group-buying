@@ -10,6 +10,8 @@ public record ProductResponse(
         String name,
         String details,
         String imageUrl,
+        Integer price,
+        Integer stock,
         LocalDateTime createDt
 ) {
 
@@ -20,6 +22,8 @@ public record ProductResponse(
                 product.getName(),
                 product.getDetails(),
                 product.getImageUrl(),
+                product.getPrice(),
+                product.getStock(),
                 product.getCreateDt()
         );
     }

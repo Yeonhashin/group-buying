@@ -9,6 +9,6 @@ services:
       MYSQL_ROOT_PASSWORD: 1234
       MYSQL_DATABASE: groupbuy
     ports:
-      - "3307:3306"
+      - "13306:3306"
     volumes:
       - ./data/mysql:/var/lib/mysql

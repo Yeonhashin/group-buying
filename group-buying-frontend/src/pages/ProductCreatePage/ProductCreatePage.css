@@ -1,0 +1,36 @@
+.product-create-container {
+    max-width: 500px;
+    margin: 40px auto;
+    background-color: #f9fafb;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.product-create-container label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 500;
+}
+
+.product-create-container input,
+.product-create-container textarea {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    margin-bottom: 15px;
+}
+
+.product-create-container button {
+    padding: 10px 18px;
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.product-create-container button:hover {
+    background-color: #2563eb;
+}

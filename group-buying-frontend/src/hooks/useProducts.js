@@ -1,38 +1,48 @@
 import { useEffect, useState } from "react";
-import { getProducts } from "../api/productApi";
 
-export const useProducts = () => {
+export const useProducts = (keyword) => {
 
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    const fetchProducts = async () => {
+    const [page, setPage] = useState(0);
+    const [size] = useState(9);
+    const [totalPages, setTotalPages] = useState(0);
+    const [totalCount, setTotalCount] = useState(0);
+
+    useEffect(() => {
 
         setLoading(true);
 
-        try {
+        fetch(`/api/products?page=${page}&size=${size}&keyword=${keyword ?? ""}`)
+            .then(res => res.json())
+            .then(data => {
 
-            const data = await getProducts();
+                const result = data.data;
 
-            setProducts(data.data);
+                setProducts(result.content);
+                setTotalPages(result.totalPages);
+                setTotalCount(result.totalElements);
 
-        } catch (err) {
+            })
+            .catch(err => {
+                console.error("상품 조회 실패", err);
+                setError(err);
+            })
+            .finally(() => {
+                setLoading(false);
+            });
 
-            console.error("상품 조회 실패", err);
-            setError(err);
+    }, [page, size, keyword]);
 
-        } finally {
-
-            setLoading(false);
-
-        }
-
+    return {
+        products,
+        page,
+        setPage,
+        totalPages,
+        totalCount,
+        loading,
+        error
     };
-
-    useEffect(() => {
-        fetchProducts();
-    }, []);
-
-    return { products, loading, error };
 };

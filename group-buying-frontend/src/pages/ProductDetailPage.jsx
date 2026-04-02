@@ -1,10 +1,13 @@
 import { useParams } from "react-router-dom";
 import { useProductDetail } from "../hooks/useProductDetail";
+import { useNavigate } from "react-router-dom";
 
 function ProductDetailPage() {
 
     const { productId } = useParams();
     const { product, loading, error } = useProductDetail(productId);
+    const token = localStorage.getItem("accessToken");
+    const navigate = useNavigate();
 
     if (loading) {
         return <div style={styles.center}>로딩중...</div>;
@@ -24,7 +27,7 @@ function ProductDetailPage() {
             <div style={styles.card}>
 
                 <img
-                    src={product.imageUrl}
+                    src={`http://localhost:8081${product.imageUrl}`}
                     alt={product.name}
                     style={styles.image}
                 />
@@ -37,7 +40,16 @@ function ProductDetailPage() {
                     {product.details}
                 </p>
 
+                <p>가격 : {product.price.toLocaleString()}원</p>
+                <p>재고 : {product.stock}개</p>
+
             </div>
+
+            {token && (
+                <button onClick={() => navigate(`/products/edit/${productId}`)}>
+                    수정하기
+                </button>
+            )}
 
         </div>
     );
