@@ -18,7 +18,7 @@ public record ProductResponse(
     public static ProductResponse from(Product product) {
         return new ProductResponse(
                 product.getId(),
-                product.getUserId(),
+                product.getUser().getId(), // 🔥 수정
                 product.getName(),
                 product.getDetails(),
                 product.getImageUrl(),

@@ -3,7 +3,9 @@ package com.hayeon.groupbuy.domain.product.service;
 import com.hayeon.groupbuy.domain.product.dto.response.ProductResponse;
 import com.hayeon.groupbuy.domain.product.dto.response.ProductPageResponse;
 import com.hayeon.groupbuy.domain.product.entity.Product;
+import com.hayeon.groupbuy.domain.user.entity.User;
 import com.hayeon.groupbuy.domain.product.repository.ProductRepository;
+import com.hayeon.groupbuy.domain.user.repository.UserRepository;
 import com.hayeon.groupbuy.global.exception.ResourceNotFoundException;
 import com.hayeon.groupbuy.global.exception.UnauthorizedException;
 import com.hayeon.groupbuy.global.exception.ConflictException;
@@ -29,58 +31,57 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class ProductService {
+
     private final ProductRepository productRepository;
+    private final UserRepository userRepository; // 🔥 추가
+
     @Value("${file.upload.path}")
     private String uploadPath;
 
     @Transactional
     public void save(String name, String details, Integer price, Integer stock, MultipartFile file) {
-        // 1. 로그인 확인
+
         Long userId = SecurityUtil.getCurrentUserId()
                 .orElseThrow(() -> new UnauthorizedException("로그인이 필요합니다."));
 
-        // 2. 파일 저장
         String imageUrl = fileUpload(file);
 
-        // 3. 상품 생성
-        Product product = Product.create(userId, name, details, imageUrl, price, stock);
+        User user = userRepository.getReferenceById(userId); // 정상
+        Product product = Product.create(user, name, details, imageUrl, price, stock);
 
-        // 4. DB 저장
         productRepository.save(product);
     }
 
     @Transactional
     public void edit(Long id, String name, String details, Integer price, Integer stock, MultipartFile file) {
-        // 1. 로그인 확인
+
         Long userId = SecurityUtil.getCurrentUserId()
                 .orElseThrow(() -> new UnauthorizedException("로그인이 필요합니다."));
 
-        // 2. 상품의 존재 여부 확인
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("상품이 존재하지 않습니다."));
 
-        // 3. 권한 확인 (작성자만 수정 가능)
-        if(!product.getUserId().equals(userId)) {
+        // 🔥 핵심 수정
+        if (!product.getUser().getId().equals(userId)) {
             throw new UnauthorizedException("수정 권한이 없습니다.");
         }
 
-        // 4. 파일 저장
         String imageUrl = product.getImageUrl();
 
         if (file != null && !file.isEmpty()) {
             imageUrl = fileUpload(file);
         }
 
-        // 5. 엔티티 수정
         product.update(name, details, imageUrl, price, stock);
     }
 
     public ProductPageResponse getProductList(int page, int size, String keyword) {
+
         PageRequest pageRequest =
                 PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createDt"));
+
         Page<Product> products;
 
-        // 검색어가 존재할 경우 > 검색 기능 실시
         if (keyword != null && !keyword.isBlank()) {
             products = productRepository.findByNameContainingOrDetailsContaining(keyword, keyword, pageRequest);
         } else {
@@ -108,14 +109,12 @@ public class ProductService {
         return ProductResponse.from(product);
     }
 
-    // 파일 업로드용
     private String fileUpload(MultipartFile file) {
         if (file.isEmpty()) {
             throw new RuntimeException("업로드 파일이 없습니다.");
         }
 
         try {
-
             String originalFilename = file.getOriginalFilename();
             String storedFileName = UUID.randomUUID() + "_" + originalFilename;
 
@@ -126,13 +125,11 @@ public class ProductService {
             }
 
             Path filePath = uploadDir.resolve(storedFileName);
-
             file.transferTo(filePath.toFile());
 
             return "/images/" + storedFileName;
 
         } catch (IOException e) {
-            e.printStackTrace();
             throw new RuntimeException("파일 업로드 실패", e);
         }
     }

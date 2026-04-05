@@ -1,10 +1,10 @@
 package com.hayeon.groupbuy.domain.product.entity;
 
+import com.hayeon.groupbuy.domain.user.entity.User; // 🔥 추가
+
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 import java.time.LocalDateTime;
+import lombok.*;
 
 @Entity
 @Table(name = "products")
@@ -16,8 +16,9 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @Column(nullable = false, length = 255)
     private String name;
@@ -43,30 +44,36 @@ public class Product {
     @Column(name = "delete_dt")
     private LocalDateTime deleteDt;
 
-    public static Product create(Long userId, String name, String details, String imageUrl, Integer price, Integer stock) {
+    @PrePersist
+    protected void onCreate() {
+        this.createDt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updateDt = LocalDateTime.now();
+    }
+
+    public void delete() {
+        this.deleteDt = LocalDateTime.now();
+    }
+
+    public static Product create(User user, String name, String details, String imageUrl, Integer price, Integer stock) {
         Product product = new Product();
-        product.userId = userId;
+        product.user = user;
         product.name = name;
         product.details = details;
         product.imageUrl = imageUrl;
         product.price = price;
         product.stock = stock;
-        product.createDt = LocalDateTime.now();
         return product;
     }
 
-    public void update(
-            String name,
-            String details,
-            String imageUrl,
-            Integer price,
-            Integer stock
-    ) {
+    public void update(String name, String details, String imageUrl, Integer price, Integer stock) {
         this.name = name;
         this.details = details;
         this.imageUrl = imageUrl;
         this.price = price;
         this.stock = stock;
-        this.updateDt = LocalDateTime.now();
     }
 }

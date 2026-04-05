@@ -12,3 +12,15 @@ services:
       - "13306:3306"
     volumes:
       - ./data/mysql:/var/lib/mysql
+
+  spring:
+    build: .
+    container_name: groupbuy-spring
+    ports:
+      - "8081:8081"
+    depends_on:
+      - mysql
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/groupbuy?serverTimezone=Asia/Seoul
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: 1234

@@ -65,7 +65,7 @@ public class SecurityConfig {
 
                         // 상품 등록/수정/삭제는 로그인 필요
                         .requestMatchers("/api/products/**").authenticated()
-
+                        .requestMatchers("/api/groupPurchase/**").permitAll()
                         // 나머지는 인증 필요
                         .anyRequest().authenticated()
                 )
