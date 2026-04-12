@@ -59,6 +59,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/users/signup").permitAll()
                         .requestMatchers("/api/users/check-email").permitAll()
+                        .requestMatchers("/api/redis/**").permitAll()
 
                         // 상품 조회는 공개
                         .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()

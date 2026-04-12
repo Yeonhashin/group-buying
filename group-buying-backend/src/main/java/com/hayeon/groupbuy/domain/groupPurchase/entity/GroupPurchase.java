@@ -6,7 +6,7 @@ import com.hayeon.groupbuy.domain.groupPurchase.dto.request.UpdateGroupPurchaseR
 
 import jakarta.persistence.*;
 import lombok.*;
-import java.time.LocalDateTime;
+import java.time.*;
 
 @Entity
 @Table(name = "group_purchases")
@@ -46,10 +46,10 @@ public class GroupPurchase {
     private Integer currentParticipants = 0;
 
     @Column(name = "start_dt")
-    private LocalDateTime startDt;
+    private LocalDate startDt;
 
     @Column(name = "end_dt")
-    private LocalDateTime endDt;
+    private LocalDate endDt;
 
     @Column(nullable = false)
     private Byte status;
@@ -76,7 +76,7 @@ public class GroupPurchase {
 
     public static GroupPurchase create(User user, Product product, String title, String details,
                                        Integer targetPrice, Integer targetParticipants,
-                                       LocalDateTime startDt, LocalDateTime endDt) {
+                                       LocalDate startDt, LocalDate endDt) {
 
         GroupPurchase groupPurchase = new GroupPurchase();
         groupPurchase.user = user;

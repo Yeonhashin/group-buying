@@ -1,34 +1,29 @@
-.page-container {
-    background: #ffffff;
-
-    min-height: 100vh;
-
-    padding: 40px;
+.product-list-container {
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 20px;
 }
 
-body {
-
-    background: #ffffff;
-
-    margin: 0;
-}
-
-.content-wrapper {
-    max-width: 1200px;
-    margin: 0 auto;
-}
-
-.add-product-button {
-    padding: 10px 20px;
-    background-color: #3b82f6;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 500;
+.top-actions {
+    display: flex;
+    justify-content: space-between;
     margin-bottom: 20px;
 }
 
-.add-product-button:hover {
-    background-color: #2563eb;
+.logout-btn {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 8px;
+    background-color: #ff4d4f;
+    color: white;
+    cursor: pointer;
+}
+
+.logout-btn:hover {
+    background-color: #d9363e;
+}
+
+.product-count {
+    margin: 20px 0;
+    font-size: 16px;
 }

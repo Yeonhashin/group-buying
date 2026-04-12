@@ -1,48 +1,39 @@
 import { apiFetch } from "./apiClient";
-import axios from "axios";
 
 /**
  * 상품 목록 조회
  */
-export async function getProducts() {
-
-    const data = await apiFetch("/api/products", {
-        method: "GET",
-    });
-
-    return data;
-}
+export const getProducts = async ({ page = 0, size = 9, keyword = "" }) => {
+    const res = await apiFetch(`/api/products?page=${page}&size=${size}&keyword=${keyword}`);
+    return res.data;
+};
 
 /**
- * 상품 상세 조회
+ * 상품 단건 조회
  */
-export async function getProductDetail(productId) {
-
-    const data = await apiFetch(`/api/products/${productId}`, {
-        method: "GET",
-    });
-
-    return data;
-}
+export const getProduct = async (productId) => {
+    const res = await apiFetch(`/api/products/${productId}`);
+    return res.data;
+};
 
 /**
- * 상품 신규 등록
+ * 상품 생성
  */
 export const createProduct = async (formData) => {
-
-    return apiFetch("/api/products", {
+    const res = await apiFetch("/api/products", {
         method: "POST",
-        body: formData
+        body: formData,
     });
-
+    return res.data;
 };
 
 /**
  * 상품 수정
  */
-export const updateProduct = async (id, formData) => {
-    return apiFetch(`/api/products/${id}`, {
+export const updateProduct = async (productId, formData) => {
+    const res = await apiFetch(`/api/products/${productId}`, {
         method: "PATCH",
-        body: formData
+        body: formData,
     });
+    return res.data;
 };

@@ -4,27 +4,20 @@ import com.hayeon.groupbuy.domain.product.entity.Product;
 
 import java.time.LocalDateTime;
 
-public record ProductResponse(
+public record ProductSummaryResponse(
         Long id,
-        Long userId,
         String name,
-        String details,
         String imageUrl,
         Integer price,
-        Integer stock,
-        LocalDateTime createDt
+        Integer stock
 ) {
-
-    public static ProductResponse from(Product product) {
-        return new ProductResponse(
+    public static ProductSummaryResponse from(Product product) {
+        return new ProductSummaryResponse(
                 product.getId(),
-                product.getUser().getId(),
                 product.getName(),
-                product.getDetails(),
                 product.getImageUrl(),
                 product.getPrice(),
-                product.getStock(),
-                product.getCreateDt()
+                product.getStock()
         );
     }
 }

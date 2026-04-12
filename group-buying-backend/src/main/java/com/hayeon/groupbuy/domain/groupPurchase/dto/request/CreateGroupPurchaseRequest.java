@@ -6,7 +6,7 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
-import java.time.LocalDateTime;
+import java.time.*;
 
 @Getter
 @Setter
@@ -33,10 +33,10 @@ public class CreateGroupPurchaseRequest {
     private Integer targetParticipants;
 
     @NotNull(message = "시작 시간을 입력해주세요.")
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    private LocalDateTime startDt;
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate startDt;
 
     @NotNull(message = "종료 시간을 입력해주세요.")
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    private LocalDateTime endDt;
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate endDt;
 }

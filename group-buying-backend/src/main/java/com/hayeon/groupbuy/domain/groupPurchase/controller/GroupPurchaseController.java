@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/api/groupPurchase")
+@RequestMapping("/api/group-purchases")
 @RequiredArgsConstructor
 public class GroupPurchaseController {
 

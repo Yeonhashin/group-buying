@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 
 import lombok.*;
 
-import java.time.LocalDateTime;
+import java.time.*;
 
 @Getter
 @Setter
@@ -25,9 +25,9 @@ public class UpdateGroupPurchaseRequest {
     private Integer targetPrice;
     private Integer targetParticipants;
 
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    private LocalDateTime startDt;
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate startDt;
 
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    private LocalDateTime endDt;
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate endDt;
 }
