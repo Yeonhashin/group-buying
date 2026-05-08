@@ -7,4 +7,20 @@ const axiosInstance = axios.create({
     }
 });
 
+// 🔥 요청 인터셉터 추가
+axiosInstance.interceptors.request.use(
+    (config) => {
+        const token = localStorage.getItem("accessToken");
+
+        if (token) {
+            config.headers.Authorization = token.startsWith("Bearer ")
+                ? token
+                : `Bearer ${token}`;
+        }
+
+        return config;
+    },
+    (error) => Promise.reject(error)
+);
+
 export default axiosInstance;

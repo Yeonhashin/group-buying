@@ -3,6 +3,9 @@ package com.hayeon.groupbuy.domain.groupPurchase.entity;
 import com.hayeon.groupbuy.domain.user.entity.User;
 import com.hayeon.groupbuy.domain.product.entity.Product;
 import com.hayeon.groupbuy.domain.groupPurchase.dto.request.UpdateGroupPurchaseRequest;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import com.hayeon.groupbuy.domain.groupPurchase.enums.GroupPurchaseStatus;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -41,18 +44,14 @@ public class GroupPurchase {
     @Column(name = "target_participants", nullable = false)
     private Integer targetParticipants;
 
-    @Column(name = "current_participants", nullable = false)
-    @Builder.Default
-    private Integer currentParticipants = 0;
-
     @Column(name = "start_dt")
     private LocalDate startDt;
 
     @Column(name = "end_dt")
     private LocalDate endDt;
 
-    @Column(nullable = false)
-    private Byte status;
+    @Enumerated(EnumType.STRING)
+    private GroupPurchaseStatus status;
 
     @Column(name = "create_dt", updatable = false)
     private LocalDateTime createDt;
@@ -66,7 +65,6 @@ public class GroupPurchase {
     @PrePersist
     protected void onCreate() {
         this.createDt = LocalDateTime.now();
-        if (this.currentParticipants == null) this.currentParticipants = 0;
     }
 
     @PreUpdate
@@ -87,8 +85,7 @@ public class GroupPurchase {
         groupPurchase.targetParticipants = targetParticipants;
         groupPurchase.startDt = startDt;
         groupPurchase.endDt = endDt;
-        groupPurchase.status = 0;
-        groupPurchase.currentParticipants = 0;
+        groupPurchase.status = GroupPurchaseStatus.RECRUITING;
 
         return groupPurchase;
     }
@@ -100,5 +97,9 @@ public class GroupPurchase {
         if (dto.getTargetParticipants() != null) this.targetParticipants = dto.getTargetParticipants();
         if (dto.getStartDt() != null) this.startDt = dto.getStartDt();
         if (dto.getEndDt() != null) this.endDt = dto.getEndDt();
+    }
+
+    public void updateStatus(GroupPurchaseStatus status) {
+        this.status = status;
     }
 }

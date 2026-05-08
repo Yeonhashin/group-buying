@@ -21,16 +21,17 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/login")
-    public ResponseEntity<CommonResponse<String>> login(@Valid @RequestBody LoginRequest request) {
-        String token = authService.login(request);
+    public ResponseEntity<CommonResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest request) {
+        LoginResponse response = authService.login(request);
+        //String token = authService.login(request);
 
         return ResponseEntity.ok(
-                CommonResponse.<String>builder()
+                CommonResponse.<LoginResponse>builder()
                         .success(true)
                         .message("로그인 성공")
                         .status(HttpStatus.OK.value())
                         .timestamp(LocalDateTime.now())
-                        .data("Bearer " + token)
+                        .data(response)
                         .build()
         );
     }

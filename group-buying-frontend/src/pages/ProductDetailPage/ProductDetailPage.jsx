@@ -1,13 +1,14 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useProduct } from "../../hooks/useProduct";
 import "./ProductDetailPage.css";
+import { useAuthStore } from "../../store/useAuthStore";
 
 function ProductDetailPage() {
     const { productId } = useParams();
     const { data: product, isLoading, isError } = useProduct(productId);
     const navigate = useNavigate();
 
-    const token = localStorage.getItem("accessToken");
+    const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
 
     if (isLoading) {
         return <div className="center">로딩중...</div>;
@@ -45,7 +46,7 @@ function ProductDetailPage() {
 
             </div>
 
-            {token && (
+            {isLoggedIn && (
                 <button
                     className="submit-btn"
                     onClick={() => navigate(`/products/${productId}/edit`)}

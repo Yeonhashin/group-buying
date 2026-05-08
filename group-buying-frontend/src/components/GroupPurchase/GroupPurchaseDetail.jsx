@@ -1,6 +1,11 @@
 import { useNavigate } from "react-router-dom";
+import { useAuthStore } from "../../store/useAuthStore";
 
 const GroupPurchaseDetail = ({ groupPurchase }) => {
+    if (!groupPurchase) {
+        return <div>Loading...</div>;
+    }
+
     const navigate = useNavigate();
 
     const {
@@ -14,6 +19,8 @@ const GroupPurchaseDetail = ({ groupPurchase }) => {
         product,
     } = groupPurchase;
 
+    const current = currentParticipants ?? 0;
+    const target = targetParticipants ?? 1;
     const progress = Math.min(
         (currentParticipants / targetParticipants) * 100,
         100
@@ -25,14 +32,23 @@ const GroupPurchaseDetail = ({ groupPurchase }) => {
 
     const daysLeft = Math.max(Math.floor(diff / (1000 * 60 * 60 * 24)), 0);
 
-    let status = "모집중";
-    if (currentParticipants >= targetParticipants) status = "달성";
-    else if (diff <= 0) status = "마감";
+    const { status } = groupPurchase;
+
+    let displayStatus = "모집중";
+
+    if (status === "CLOSED") displayStatus = "마감";
+    else if (status === "COMPLETED") displayStatus = "달성";
 
     /**
-     * 수정 가능 여부 (중요)
+     * 수정 가능 여부
      */
-    const canEdit = status === "모집중";
+    const currentUserId = useAuthStore((state) => state.user?.id);
+    const isOwner = currentUserId === groupPurchase.userId;
+    console.log(currentUserId, isOwner);
+    console.log("currentUserId:", currentUserId);
+    console.log("groupPurchase.userId:", groupPurchase?.userId);
+    console.log("type userId:", typeof groupPurchase?.userId);
+    const canEdit = isOwner && status === "RECRUITING";
 
     /**
      * 수정 페이지 이동
@@ -70,23 +86,23 @@ const GroupPurchaseDetail = ({ groupPurchase }) => {
 
             <p>진행률: {progress.toFixed(0)}%</p>
             <p>남은 기간: {daysLeft}일</p>
-            <p>상태: {status}</p>
+            <p>상태: {displayStatus}</p>
 
-            {/* 🔥 수정 버튼 추가 */}
+            {canEdit && (
             <button
                 onClick={handleEdit}
-                disabled={!canEdit}
                 style={{
                     marginTop: "12px",
                     padding: "10px",
-                    cursor: canEdit ? "pointer" : "not-allowed",
-                    background: canEdit ? "#1976d2" : "#ccc",
+                    cursor: "pointer",
+                    background: "#1976d2",
                     color: "#fff",
                     border: "none",
                 }}
             >
                 수정하기
             </button>
+            )}
         </div>
     );
 };

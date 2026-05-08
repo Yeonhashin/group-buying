@@ -4,6 +4,8 @@ import com.hayeon.groupbuy.domain.groupPurchase.dto.request.CreateGroupPurchaseR
 import com.hayeon.groupbuy.domain.groupPurchase.dto.request.UpdateGroupPurchaseRequest;
 import com.hayeon.groupbuy.domain.groupPurchase.dto.response.GroupPurchaseResponse;
 import com.hayeon.groupbuy.domain.groupPurchase.dto.response.GroupPurchasePageResponse;
+import com.hayeon.groupbuy.domain.groupPurchase.dto.response.GroupPurchaseEditResponse;
+
 import com.hayeon.groupbuy.domain.groupPurchase.service.GroupPurchaseService;
 import com.hayeon.groupbuy.global.response.CommonResponse;
 
@@ -20,9 +22,24 @@ public class GroupPurchaseController {
     private final GroupPurchaseService groupPurchaseService;
 
     @PostMapping
-    public ResponseEntity<CommonResponse<Void>> save(@Valid @RequestBody CreateGroupPurchaseRequest request) {
-        groupPurchaseService.save(request);
-        return ResponseEntity.ok(CommonResponse.success(null));
+    public ResponseEntity<CommonResponse<Long>> save(
+            @Valid @RequestBody CreateGroupPurchaseRequest request
+    ) {
+        Long id = groupPurchaseService.save(request);
+
+        return ResponseEntity.ok(
+                CommonResponse.success(id)
+        );
+    }
+
+    @GetMapping("/{id}/edit")
+    public ResponseEntity<CommonResponse<GroupPurchaseEditResponse>> getEditData(@PathVariable Long id) {
+
+        GroupPurchaseEditResponse data = groupPurchaseService.getEditData(id);
+
+        return ResponseEntity.ok(
+                CommonResponse.success(data)
+        );
     }
 
     @PatchMapping("/{id}")

@@ -5,13 +5,14 @@ import ProductGrid from "../../components/ProductGrid/ProductGrid";
 import Pagination from "../../components/Pagination/Pagination";
 import { useProducts } from "../../hooks/useProducts";
 import "./ProductListPage.css";
+import {useAuthStore} from "../../store/useAuthStore.js";
 
 const ProductListPage = () => {
     const [keyword, setKeyword] = useState("");
     const [page, setPage] = useState(0);
 
     const navigate = useNavigate();
-    const token = localStorage.getItem("accessToken");
+    const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
 
     const { data, isLoading, isError } = useProducts({
         page,
@@ -33,7 +34,7 @@ const ProductListPage = () => {
     return (
         <div className="product-list-container">
 
-            {token && (
+            {isLoggedIn && (
                 <div className="top-actions">
                     <button
                         className="submit-btn"

@@ -2,9 +2,10 @@ import { useState } from "react";
 import { useGroupPurchases } from "../../hooks/useGroupPurchases";
 import GroupPurchaseCard from "../../components/GroupPurchase/GroupPurchaseCard";
 import { useNavigate } from "react-router-dom";
+import { useAuthStore } from "../../store/useAuthStore";
 
 const GroupPurchaseListPage = () => {
-    const isLoggedIn = !!localStorage.getItem("accessToken");
+    const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
 
     const navigate = useNavigate();
 

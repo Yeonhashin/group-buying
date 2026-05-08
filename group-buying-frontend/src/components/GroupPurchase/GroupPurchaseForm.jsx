@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useProducts } from "../../hooks/useProducts";
 
 const GroupPurchaseForm = ({
@@ -8,6 +8,9 @@ const GroupPurchaseForm = ({
                                isSubmitting,
                            }) => {
 
+    /**
+     * 1. form state (input 전용)
+     */
     const [form, setForm] = useState({
         productId: "",
         title: "",
@@ -16,69 +19,80 @@ const GroupPurchaseForm = ({
         targetParticipants: "",
         startDt: "",
         endDt: "",
-        productImage: "",
     });
 
     const { data } = useProducts({ page: 0, size: 100 });
     const products = data?.content || [];
 
     /**
-     * 초기값 세팅
+     * 2. edit 초기값 세팅
      */
     useEffect(() => {
         if (isEditMode && initialData) {
             setForm({
-                productId: initialData.product?.id || "",
+                productId: initialData.productId || "",
                 title: initialData.title || "",
                 details: initialData.details || "",
                 targetPrice: initialData.targetPrice || "",
                 targetParticipants: initialData.targetParticipants || "",
                 startDt: initialData.startDt?.slice(0, 10) || "",
                 endDt: initialData.endDt?.slice(0, 10) || "",
-                productImage: initialData.product?.imageUrl || "",
             });
         }
     }, [isEditMode, initialData]);
 
     /**
-     * 변경 핸들러
+     * 3. product derived data
+     */
+    const selectedProduct = useMemo(() => {
+        return products.find(
+            (p) => p.id === Number(form.productId)
+        );
+    }, [form.productId, products]);
+
+    const productImage = selectedProduct?.imageUrl || "";
+
+    /**
+     * 4. change handler
      */
     const handleChange = (e) => {
         const { name, value } = e.target;
 
-        if (name === "productId") {
-            const selected = products.find(p => p.id === Number(value));
+        setForm((prev) => {
+            if (name === "productId") {
+                const selected = products.find(
+                    (p) => p.id === Number(value)
+                );
 
-            setForm(prev => ({
+                return {
+                    ...prev,
+                    productId: value,
+                    targetPrice: selected?.price || "",
+                };
+            }
+
+            return {
                 ...prev,
-                productId: value,
-                targetPrice: selected?.price || "",
-                productImage: selected?.imageUrl || "",
-            }));
-            return;
-        }
-
-        setForm(prev => ({
-            ...prev,
-            [name]: value,
-        }));
+                [name]: value,
+            };
+        });
     };
 
     /**
-     * submit
+     * 5. submit (핵심: preventDefault + onSubmit만 호출)
      */
     const handleSubmit = (e) => {
-        e.preventDefault();
+        e.preventDefault(); // ❗ 필수
+
         onSubmit(form);
     };
 
     return (
         <form className="group-form" onSubmit={handleSubmit}>
 
-            <div className="group-form-group">
-                <label className="group-label">상품 선택</label>
+            <div>
+                <label>상품 선택</label>
                 <select
-                    className="group-select"
                     name="productId"
                     value={form.productId}
                     onChange={handleChange}
@@ -92,30 +106,27 @@ const GroupPurchaseForm = ({
                 </select>
             </div>
 
-            <div className="group-form-group">
-                <label className="group-label">제목</label>
+            <div>
+                <label>제목</label>
                 <input
-                    className="group-input"
                     name="title"
                     value={form.title}
                     onChange={handleChange}
                 />
             </div>
 
-            <div className="group-form-group">
-                <label className="group-label">설명</label>
+            <div>
+                <label>설명</label>
                 <textarea
-                    className="group-textarea"
                     name="details"
                     value={form.details}
                     onChange={handleChange}
                 />
             </div>
 
-            <div className="group-form-group">
-                <label className="group-label">목표 가격</label>
+            <div>
+                <label>목표 가격</label>
                 <input
-                    className="group-input"
                     type="number"
                     name="targetPrice"
                     value={form.targetPrice}
@@ -123,10 +134,9 @@ const GroupPurchaseForm = ({
                 />
             </div>
 
-            <div className="group-form-group">
-                <label className="group-label">목표 인원</label>
+            <div>
+                <label>목표 인원</label>
                 <input
-                    className="group-input"
                     type="number"
                     name="targetParticipants"
                     value={form.targetParticipants}
@@ -134,10 +144,9 @@ const GroupPurchaseForm = ({
                 />
             </div>
 
-            <div className="group-form-group">
-                <label className="group-label">시작일</label>
+            <div>
+                <label>시작일</label>
                 <input
-                    className="group-input"
                     type="date"
                     name="startDt"
                     value={form.startDt}
@@ -145,10 +154,9 @@ const GroupPurchaseForm = ({
                 />
             </div>
 
-            <div className="group-form-group">
-                <label className="group-label">종료일</label>
+            <div>
+                <label>종료일</label>
                 <input
-                    className="group-input"
                     type="date"
                     name="endDt"
                     value={form.endDt}
@@ -156,20 +164,14 @@ const GroupPurchaseForm = ({
                 />
             </div>
 
-            {form.productImage && (
-                <div className="group-image-preview">
-                    <img
-                        className="group-image"
-                        src={`http://localhost:8081${form.productImage}`}
-                    />
-                </div>
+            {productImage && (
+                <img
+                    src={`http://localhost:8081${productImage}`}
+                    alt="product"
+                />
             )}
 
-            <button
-                className="group-submit-btn"
-                type="submit"
-                disabled={isSubmitting}
-            >
+            <button type="submit" disabled={isSubmitting}>
                 {isEditMode ? "수정" : "생성"}
             </button>
 

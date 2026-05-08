@@ -32,11 +32,39 @@ export const createGroupPurchase = (data) => {
 };
 
 /**
+ * 공동구매 수정용 데이터 조회
+ */
+export const getGroupPurchaseEdit = (groupPurchaseId) => {
+    return apiFetch(`/api/group-purchases/${groupPurchaseId}/edit`, {
+        method: "GET",
+    });
+};
+
+/**
  * 공동구매 수정
  */
 export const updateGroupPurchase = (groupPurchaseId, data) => {
     return apiFetch(`/api/group-purchases/${groupPurchaseId}`, {
         method: "PATCH",
         body: JSON.stringify(data),
+    });
+};
+
+/**
+ * 공동구매 참여
+ */
+export const joinGroupPurchase = (groupPurchaseId, data) => {
+    return apiFetch(`/api/group-purchases/${groupPurchaseId}/participation`, {
+        method: "POST",
+        body: JSON.stringify(data),
+    });
+};
+
+/**
+ * 공동구매 참여 취소
+ */
+export const cancelGroupPurchase = (groupPurchaseId) => {
+    return apiFetch(`/api/group-purchases/${groupPurchaseId}/participation`, {
+        method: "DELETE",
     });
 };

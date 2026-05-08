@@ -14,6 +14,11 @@ public record GroupPurchaseResponse(
         Integer targetPrice,
         Integer targetParticipants,
         Integer currentParticipants,
+
+        // 공동 구매 상세 > 참여 여부 확인
+        String status,
+        Boolean isParticipated,
+
         LocalDate startDt,
         LocalDate endDt,
         LocalDateTime createDt,
@@ -21,7 +26,7 @@ public record GroupPurchaseResponse(
         LocalDateTime deleteDt
 ) {
 
-    public static GroupPurchaseResponse from(GroupPurchase groupPurchase) {
+    public static GroupPurchaseResponse from(GroupPurchase groupPurchase, int currentParticipants, boolean isParticipated) {
         return new GroupPurchaseResponse(
                 groupPurchase.getId(),
                 groupPurchase.getUser().getId(),
@@ -30,7 +35,12 @@ public record GroupPurchaseResponse(
                 groupPurchase.getDetails(),
                 groupPurchase.getTargetPrice(),
                 groupPurchase.getTargetParticipants(),
-                groupPurchase.getCurrentParticipants(),
+                currentParticipants,
+
+                // 공동 구매 참여 여부 확인용
+                groupPurchase.getStatus().name(),
+                isParticipated,
+
                 groupPurchase.getStartDt(),
                 groupPurchase.getEndDt(),
                 groupPurchase.getCreateDt(),

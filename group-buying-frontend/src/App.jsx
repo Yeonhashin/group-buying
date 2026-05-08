@@ -10,10 +10,13 @@ import GroupPurchaseDetailPage from "./pages/GroupPurchaseDetailPage/GroupPurcha
 import GroupPurchaseFormPage from "./pages/GroupPurchaseFormPage/GroupPurchaseFormPage.jsx";
 
 import ProtectedRoute from "./components/ProtectedRoute";
+import { Toaster } from "react-hot-toast";
 
 function App() {
     return (
         <BrowserRouter>
+            <Toaster position="top-center" />
+
             <Routes>
                 <Route path="/signup" element={<SignupPage />} />
                 <Route path="/login" element={<LoginPage />} />

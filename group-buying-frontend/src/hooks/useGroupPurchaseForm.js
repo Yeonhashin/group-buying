@@ -3,22 +3,32 @@ import {
     getGroupPurchase,
     createGroupPurchase,
     updateGroupPurchase,
+    getGroupPurchaseEdit
 } from "../api/groupPurchaseApi";
 
+const queryKeys = {
+    detail: (id) => ["groupPurchase", "detail", String(id)],
+    list: ["groupPurchase", "list"],
+};
+
+/**
+ * form hook
+ */
 export const useGroupPurchaseForm = ({ mode, groupPurchaseId }) => {
     const queryClient = useQueryClient();
 
     /**
-     * 1. 상세 조회 (edit만)
+     * edit only (폼 초기값용, 캐시 의존 X 권장)
      */
-    const { data, isLoading } = useQuery({
-        queryKey: ["groupPurchase", groupPurchaseId],
-        queryFn: () => getGroupPurchase(groupPurchaseId),
+    const editQuery = useQuery({
+        queryKey: ["groupPurchase", "form", String(groupPurchaseId)],
+        queryFn: () => getGroupPurchaseEdit(groupPurchaseId),
         enabled: mode === "edit" && !!groupPurchaseId,
+        staleTime: 0,
     });
 
     /**
-     * 2. mutation 통합
+     * mutation
      */
     const mutation = useMutation({
         mutationFn: (formData) => {
@@ -26,34 +36,31 @@ export const useGroupPurchaseForm = ({ mode, groupPurchaseId }) => {
                 return createGroupPurchase(formData);
             }
 
-            if (!groupPurchaseId) {
-                throw new Error("groupPurchaseId 없음");
-            }
-
             return updateGroupPurchase(groupPurchaseId, formData);
         },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["groupPurchases"] });
 
-            if (mode === "edit") {
-                queryClient.invalidateQueries({
-                    queryKey: ["groupPurchase", groupPurchaseId],
-                });
-            }
+        onSuccess: () => {
+            // 리스트
+            queryClient.invalidateQueries({
+                queryKey: queryKeys.list,
+            });
+
+            // detail 무조건 강제 갱신
+            queryClient.invalidateQueries({
+                queryKey: queryKeys.detail(groupPurchaseId),
+            });
+
+            // form 캐시 제거
+            queryClient.removeQueries({
+                queryKey: ["groupPurchase", "form", String(groupPurchaseId)],
+            });
         },
     });
 
-    /**
-     * 3. submit
-     */
-    const submit = (formData, options) => {
-        mutation.mutate(formData, options);
-    };
-
     return {
-        data,
-        isLoading,
-        submit,
+        data: editQuery.data,
+        isLoading: editQuery.isLoading,
+        submit: mutation.mutate,
         isSubmitting: mutation.isPending,
     };
 };

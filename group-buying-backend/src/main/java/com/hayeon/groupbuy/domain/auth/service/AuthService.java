@@ -19,7 +19,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
 
-    public String login (LoginRequest request) {
+    public LoginResponse login (LoginRequest request) {
         // 1. 사용자 조회
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new UnauthorizedException("이메일 또는 비밀번호가 올바르지 않습니다."));
@@ -30,6 +30,14 @@ public class AuthService {
         }
 
         // 3. JWT 생성
-        return jwtProvider.createToken(user.getId());
+        // return jwtProvider.createToken(user.getId());
+        String token = jwtProvider.createToken(user.getId());
+
+        // 4. 응답
+        return new LoginResponse(
+                token,
+                user.getId(),
+                user.getNickname()
+        );
     }
 }
