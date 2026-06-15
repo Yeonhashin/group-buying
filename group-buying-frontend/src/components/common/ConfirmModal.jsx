@@ -1,24 +1,23 @@
-import React from "react";
-
-const ConfirmModal = ({
-                          isOpen,
-                          message,
-                          onConfirm,
-                          onCancel,
-                      }) => {
+const ConfirmModal = ({ isOpen, title, message, onConfirm, onCancel }) => {
     if (!isOpen) return null;
 
     return (
-        <div style={overlayStyle}>
-            <div style={modalStyle}>
-                <p style={messageStyle}>{message}</p>
-
-                <div style={buttonWrapperStyle}>
-                    <button style={confirmButtonStyle} onClick={onConfirm}>
-                        확인
-                    </button>
-                    <button style={cancelButtonStyle} onClick={onCancel}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+            <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-sm mx-4">
+                {title && <h3 className="text-base font-semibold text-gray-900 mb-2">{title}</h3>}
+                <p className="text-sm text-gray-600 mb-6">{message}</p>
+                <div className="flex justify-end gap-2">
+                    <button
+                        onClick={onCancel}
+                        className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                    >
                         취소
+                    </button>
+                    <button
+                        onClick={onConfirm}
+                        className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors"
+                    >
+                        확인
                     </button>
                 </div>
             </div>
@@ -27,54 +26,3 @@ const ConfirmModal = ({
 };
 
 export default ConfirmModal;
-
-/* ================== styles ================== */
-
-const overlayStyle = {
-    position: "fixed",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    zIndex: 9999,
-};
-
-const modalStyle = {
-    background: "#fff",
-    padding: "24px",
-    borderRadius: "8px",
-    minWidth: "300px",
-    textAlign: "center",
-};
-
-const messageStyle = {
-    marginBottom: "20px",
-    fontSize: "16px",
-};
-
-const buttonWrapperStyle = {
-    display: "flex",
-    justifyContent: "center",
-    gap: "10px",
-};
-
-const confirmButtonStyle = {
-    padding: "8px 16px",
-    backgroundColor: "#007bff",
-    color: "#fff",
-    border: "none",
-    borderRadius: "4px",
-    cursor: "pointer",
-};
-
-const cancelButtonStyle = {
-    padding: "8px 16px",
-    backgroundColor: "#ccc",
-    border: "none",
-    borderRadius: "4px",
-    cursor: "pointer",
-};

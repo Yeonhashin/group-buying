@@ -49,6 +49,8 @@ public class Order {
     @Column(name="update_dt")
     private LocalDateTime updateDt;
 
+    private LocalDateTime paidDt;
+
     @PrePersist
     protected void onCreate() {
         this.createDt = LocalDateTime.now();
@@ -83,8 +85,11 @@ public class Order {
 
     // 결제 성공
     public void markPaid(String paymentId) {
+
         this.paymentStatus = PaymentStatus.PAID;
         this.paymentId = paymentId;
+
+        this.paidDt = LocalDateTime.now();
     }
 
     // 결제 실패
@@ -97,9 +102,15 @@ public class Order {
         this.paymentStatus = PaymentStatus.REFUNDED;
     }
 
-    // 취소 (스케쥴용 자동취소)
+    // 취소 (자동 결제 취소)
     public void cancel() {
         this.status = OrderStatus.CANCELED;
         this.paymentStatus = PaymentStatus.FAILED;
+    }
+
+    // 취소 (수동 결제 취소)
+    public void cancelPayment() {
+        this.paymentStatus = PaymentStatus.FAILED;
+        this.paymentId = null;
     }
 }

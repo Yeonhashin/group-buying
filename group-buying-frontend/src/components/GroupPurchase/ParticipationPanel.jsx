@@ -1,182 +1,80 @@
-import {
-    useJoinGroupPurchase,
-    useCancelGroupPurchase,
-} from "../../hooks/useGroupPurchase";
-import { useQueryClient } from "@tanstack/react-query";
-
 import { useState } from "react";
 import toast from "react-hot-toast";
-import ConfirmModal from "../common/ConfirmModal";
+import { useQueryClient } from "@tanstack/react-query";
+import { useJoinGroupPurchase, useCancelGroupPurchase } from "../../hooks/useGroupPurchase";
 import { useAuthStore } from "../../store/useAuthStore";
+import ConfirmModal from "../common/ConfirmModal";
 
 const ParticipationPanel = ({ groupPurchase }) => {
-    const {
-        id,
-        currentParticipants,
-        targetParticipants,
-        status,
-        isParticipated,
-    } = groupPurchase;
-
+    const { id, currentParticipants, targetParticipants, status, isParticipated } = groupPurchase;
     const queryClient = useQueryClient();
-
     const joinMutation = useJoinGroupPurchase(id);
     const cancelMutation = useCancelGroupPurchase(id);
+    const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
+    const [modalType, setModalType] = useState(null);
 
     const isRecruiting = status === "RECRUITING";
     const isFull = currentParticipants >= targetParticipants;
+    const isLoading = joinMutation.isLoading || cancelMutation.isLoading;
 
-    const [modalType, setModalType] = useState(null);
-    const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
-
-    /**
-     * modal open
-     */
-    const openJoinModal = () => {
-        if (!isLoggedIn) {
-            toast.error("로그인이 필요합니다.");
-            return;
-        }
-
-        if (!isRecruiting || isFull) {
-            toast.error("이미 마감된 공동구매입니다.");
-            return;
-        }
-
-        setModalType("join");
-    };
-
-    const openCancelModal = () => {
-        if (!isLoggedIn) {
-            toast.error("로그인이 필요합니다.");
-            return;
-        }
-
-        setModalType("cancel");
-    };
-
-    /**
-     * modal confirm
-     */
     const handleConfirm = () => {
         if (modalType === "join") {
-            joinMutation.mutate(
-                {},
-                {
-                    onSuccess: () => {
-                        toast.success("성공적으로 공동구매에 참여하였습니다!");
-
-                        queryClient.invalidateQueries({
-                            queryKey: ["groupPurchase", String(id)],
-                        });
-                    },
-                    onError: (error) => {
-                        toast.error(
-                            error?.response?.data?.message ||
-                            "참여 중 오류 발생"
-                        );
-                    },
-                }
-            );
+            joinMutation.mutate({}, {
+                onSuccess: () => {
+                    toast.success("공동구매에 참여했습니다!");
+                    queryClient.invalidateQueries({ queryKey: ["groupPurchase", String(id)] });
+                },
+                onError: (error) => toast.error(error?.response?.data?.message || "참여 중 오류 발생"),
+            });
         }
-
         if (modalType === "cancel") {
             cancelMutation.mutate(null, {
                 onSuccess: () => {
                     toast.success("참여를 취소했습니다.");
-
-                    queryClient.invalidateQueries({
-                        queryKey: ["groupPurchase", String(id)],
-                    });
+                    queryClient.invalidateQueries({ queryKey: ["groupPurchase", String(id)] });
                 },
-                onError: (error) => {
-                    toast.error(
-                        error?.response?.data?.message ||
-                        "취소 중 오류 발생"
-                    );
-                },
+                onError: (error) => toast.error(error?.response?.data?.message || "취소 중 오류 발생"),
             });
         }
-
         setModalType(null);
     };
 
-    const handleCancelModal = () => {
-        setModalType(null);
-    };
-
-    /**
-     * 버튼 상태 결정
-     */
-    let buttonText = "";
-    let onClickHandler = null;
-    let disabled = false;
-    const isLoading =
-        joinMutation.isLoading || cancelMutation.isLoading;
-
-    let backgroundColor = "#007bff"; // 기본 (참여하기 - 파랑)
-
-    if (disabled || isLoading) {
-        backgroundColor = "#ccc";
-    } else if (isParticipated) {
-        backgroundColor = "#dc3545"; // 🔥 빨강 (취소)
-    }
+    let buttonText, buttonClass, onClick, disabled = false;
 
     if (!isLoggedIn) {
         buttonText = "로그인 후 이용 가능";
-        onClickHandler = () => toast.error("로그인이 필요합니다.");
+        buttonClass = "bg-gray-200 text-gray-500 cursor-not-allowed";
+        onClick = () => toast.error("로그인이 필요합니다.");
     } else if (isParticipated) {
-        buttonText = "참여취소하기";
-        onClickHandler = openCancelModal;
-    } else if (!isRecruiting) {
-        buttonText = "마감됨";
-        disabled = true;
-    } else if (isFull) {
-        buttonText = "모집 완료";
+        buttonText = "참여 취소";
+        buttonClass = "bg-red-500 hover:bg-red-600 text-white";
+        onClick = () => setModalType("cancel");
+    } else if (!isRecruiting || isFull) {
+        buttonText = isFull ? "모집 완료" : "마감됨";
+        buttonClass = "bg-gray-200 text-gray-400 cursor-not-allowed";
         disabled = true;
     } else {
         buttonText = "참여하기";
-        onClickHandler = openJoinModal;
+        buttonClass = "bg-indigo-600 hover:bg-indigo-700 text-white";
+        onClick = () => setModalType("join");
     }
 
-
     return (
-        <div
-            style={{
-                border: "1px solid #aaa",
-                padding: "20px",
-                marginBottom: "20px",
-            }}
-        >
-            <h3>참여 상태</h3>
-
+        <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm mb-4">
+            <h3 className="text-base font-semibold text-gray-900 mb-3">참여하기</h3>
             <button
-                onClick={onClickHandler}
+                onClick={onClick}
                 disabled={disabled || isLoading}
-                style={{
-                    padding: "10px 20px",
-                    background: backgroundColor,
-                    color: "#fff",
-                    border: "none",
-                    cursor:
-                        disabled || isLoading
-                            ? "not-allowed"
-                            : "pointer",
-                }}
+                className={`w-full py-3 rounded-lg font-medium text-sm transition-colors disabled:cursor-not-allowed ${buttonClass}`}
             >
                 {isLoading ? "처리 중..." : buttonText}
             </button>
 
-            {/* ✅ Confirm Modal */}
             <ConfirmModal
                 isOpen={!!modalType}
-                message={
-                    modalType === "join"
-                        ? "공동구매에 참여하시겠습니까?"
-                        : "참여를 취소하시겠습니까?"
-                }
+                message={modalType === "join" ? "공동구매에 참여하시겠습니까?" : "참여를 취소하시겠습니까?"}
                 onConfirm={handleConfirm}
-                onCancel={handleCancelModal}
+                onCancel={() => setModalType(null)}
             />
         </div>
     );

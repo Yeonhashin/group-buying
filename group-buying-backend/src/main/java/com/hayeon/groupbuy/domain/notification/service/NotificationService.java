@@ -3,6 +3,7 @@ package com.hayeon.groupbuy.domain.notification.service;
 import com.hayeon.groupbuy.domain.notification.entity.Notification;
 import com.hayeon.groupbuy.domain.notification.enums.NotificationStatus;
 import com.hayeon.groupbuy.domain.notification.repository.NotificationRepository;
+import com.hayeon.groupbuy.domain.notification.dto.response.NotificationResponse;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,81 +20,139 @@ public class NotificationService {
 
     // ===== 공통 생성 (내부 전용) =====
     @Transactional
-    public void create(Long userId, NotificationStatus status, String message) {
+    public void create(Long userId,
+                       NotificationStatus status,
+                       String message) {
 
         Notification notification =
                 Notification.create(userId, status, message);
 
-        notificationRepository.save(notification);
+        notificationRepository.saveAndFlush(notification);
     }
 
     // ===== 주문 생성 =====
     @Transactional
-    public void createOrderCreated(Long userId, Long orderId) {
+    public void createOrderCreated(Long userId, String groupPurchaseTitle) {
+
         create(
                 userId,
                 NotificationStatus.ORDER_CREATED,
-                "주문이 생성되었습니다. 주문번호: " + orderId
+                "[" + groupPurchaseTitle + "] 주문이 생성되었습니다."
         );
     }
 
     // ===== 결제 완료 =====
     @Transactional
-    public void createOrderPaid(Long userId, Long orderId) {
+    public void createOrderPaid(
+            Long userId,
+            String groupPurchaseTitle
+    ) {
+
         create(
                 userId,
                 NotificationStatus.ORDER_PAID,
-                "결제가 완료되었습니다. 주문번호: " + orderId
+                "[" + groupPurchaseTitle + "] 결제가 완료되었습니다."
         );
     }
 
     // ===== 결제 실패 =====
     @Transactional
-    public void createOrderFailed(Long userId, Long orderId) {
+    public void createOrderFailed(
+            Long userId,
+            String groupPurchaseTitle
+    ) {
+
         create(
                 userId,
                 NotificationStatus.ORDER_FAILED,
-                "결제에 실패했습니다. 다시 시도해주세요. 주문번호: " + orderId
+                "[" + groupPurchaseTitle + "] 결제에 실패했습니다."
         );
     }
 
-    // ===== 자동 취소 =====
+    // ===== 사용자 주문 취소 =====
     @Transactional
-    public void createOrderCanceled(Long userId, Long orderId) {
+    public void createOrderCanceledByUser(
+            Long userId,
+            String groupPurchaseTitle
+    ) {
+
+        create(
+                userId,
+                NotificationStatus.ORDER_CANCELED,
+                "[" + groupPurchaseTitle + "] 주문이 취소되었습니다."
+        );
+    }
+
+    // ===== 자동 주문 취소 =====
+    @Transactional
+    public void createOrderAutoCanceled(
+            Long userId,
+            String groupPurchaseTitle
+    ) {
+
         create(
                 userId,
                 NotificationStatus.ORDER_AUTO_CANCELED,
-                "미결제로 주문이 자동 취소되었습니다. 주문번호: " + orderId
+                "[" + groupPurchaseTitle + "] 미결제로 자동 취소되었습니다."
         );
     }
 
     // ===== 환불 =====
     @Transactional
-    public void createOrderRefunded(Long userId, Long orderId) {
+    public void createOrderRefunded(
+            Long userId,
+            String groupPurchaseTitle
+    ) {
+
         create(
                 userId,
                 NotificationStatus.ORDER_REFUNDED,
-                "환불이 완료되었습니다. 주문번호: " + orderId
+                "[" + groupPurchaseTitle + "] 환불이 완료되었습니다."
         );
     }
 
-    // ===== 조회 =====
-    public List<Notification> getNotifications(Long userId) {
-        return notificationRepository.findByUserIdOrderByCreateDtDesc(userId);
+    // ===== 전체 조회 =====
+    public List<NotificationResponse> getNotifications(Long userId) {
+        return notificationRepository.findByUserIdOrderByCreateDtDesc(userId)
+                .stream()
+                .map(NotificationResponse::from)
+                .toList();
     }
 
-    public List<Notification> getUnreadNotifications(Long userId) {
-        return notificationRepository.findByUserIdAndIsRead(userId, false);
+    // ===== 안읽은 알림 =====
+    public List<NotificationResponse> getUnreadNotifications(Long userId) {
+        return notificationRepository.findByUserIdAndIsRead(userId, false)
+                .stream()
+                .map(NotificationResponse::from)
+                .toList();
     }
 
-    // ===== 읽음 처리 =====
+    // ===== 단건 읽음 처리 =====
     @Transactional
-    public void markAsRead(Long notificationId) {
+    public void markAsRead(Long notificationId, Long userId) {
 
         Notification notification =
                 notificationRepository.findById(notificationId)
                         .orElseThrow(() -> new IllegalArgumentException("NOT_FOUND"));
 
+        // 보안: 본인 알림인지 체크
+        if (!notification.getUserId().equals(userId)) {
+            throw new IllegalStateException("INVALID_USER");
+        }
+
         notification.markAsRead();
+    }
+
+    // ===== 모두 읽음 처리 =====
+    @Transactional
+    public void markAllAsRead(Long userId) {
+
+        List<Notification> notifications =
+                notificationRepository.findByUserIdAndIsRead(
+                        userId,
+                        false
+                );
+
+        notifications.forEach(Notification::markAsRead);
     }
 }

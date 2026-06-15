@@ -32,7 +32,7 @@ export default function useLogin() {
                 user: { id: userId, nickname },
             });
 
-            navigate("/group-purchases");
+            navigate("/");
 
         } catch (err) {
             setError(err.message || "로그인 실패");

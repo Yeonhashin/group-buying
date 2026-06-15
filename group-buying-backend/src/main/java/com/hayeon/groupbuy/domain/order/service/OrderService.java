@@ -10,6 +10,7 @@ import com.hayeon.groupbuy.domain.groupPurchase.repository.GroupPurchaseReposito
 import com.hayeon.groupbuy.domain.order.enums.OrderStatus;
 import com.hayeon.groupbuy.domain.order.enums.PaymentStatus;
 import com.hayeon.groupbuy.domain.order.event.OrderCanceledEvent;
+import com.hayeon.groupbuy.domain.order.event.OrderPaidEvent;
 
 import org.springframework.context.ApplicationEventPublisher;
 
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.time.LocalDateTime;
 import com.hayeon.groupbuy.domain.order.dto.response.MyOrderResponse;
 
 @Service
@@ -45,9 +47,14 @@ public class OrderService {
         GroupPurchase gp = groupPurchaseRepository.findById(gpId)
                 .orElseThrow(() -> new IllegalArgumentException("GROUP_PURCHASE_NOT_FOUND"));
 
-        if (orderRepository.existsByUserIdAndGroupPurchaseId(userId, gpId)) {
-            throw new IllegalStateException("ALREADY_ORDERED");
-        }
+            log.info("주문 생성 시도 userId={}, gpId={}", userId, gpId);
+
+            if (orderRepository.existsByUserIdAndGroupPurchaseId(userId, gpId)) {
+
+                log.error("이미 주문 존재 userId={}, gpId={}", userId, gpId);
+
+                throw new IllegalStateException("ALREADY_ORDERED");
+            }
 
         Order order = Order.create(
                 userId,
@@ -95,17 +102,70 @@ public class OrderService {
         }
 
         order.markPaid(paymentId);
-    }
 
-    @Transactional
-    public void cancelOrder(Long orderId, Long userId) {
-        Order order = orderRepository.findByIdAndUserId(orderId, userId)
-                .orElseThrow(() -> new IllegalArgumentException("ORDER_NOT_FOUND"));
-
-        order.cancel();
+        GroupPurchase gp =
+                groupPurchaseRepository.findById(
+                                order.getGroupPurchaseId()
+                        )
+                        .orElseThrow(
+                                () -> new IllegalArgumentException(
+                                        "GROUP_PURCHASE_NOT_FOUND"
+                                )
+                        );
 
         eventPublisher.publishEvent(
-                new OrderCanceledEvent(order.getId(), order.getUserId())
+                new OrderPaidEvent(
+                        order.getId(),
+                        order.getUserId(),
+                        gp.getTitle()
+                )
+        );
+    }
+
+    // ===== 결제 취소=====
+    @Transactional
+    public void cancelOrder(Long orderId, Long userId) {
+
+        Order order = orderRepository.findByIdAndUserId(
+                orderId,
+                userId
+        ).orElseThrow(
+                () -> new IllegalArgumentException("ORDER_NOT_FOUND")
+        );
+
+        if (order.getPaymentStatus() != PaymentStatus.PAID) {
+            throw new IllegalStateException("NOT_PAID_ORDER");
+        }
+
+        if (
+                order.getCreateDt()
+                        .plusHours(48)
+                        .isBefore(LocalDateTime.now())
+        ) {
+            throw new IllegalStateException(
+                    "CANCEL_PERIOD_EXPIRED"
+            );
+        }
+
+        order.cancelPayment();
+
+        GroupPurchase gp =
+                groupPurchaseRepository.findById(
+                                order.getGroupPurchaseId()
+                        )
+                        .orElseThrow(
+                                () -> new IllegalArgumentException(
+                                        "GROUP_PURCHASE_NOT_FOUND"
+                                )
+                        );
+
+        eventPublisher.publishEvent(
+                new OrderCanceledEvent(
+                        order.getId(),
+                        order.getUserId(),
+                        gp.getTitle(),
+                        false
+                )
         );
     }
 }

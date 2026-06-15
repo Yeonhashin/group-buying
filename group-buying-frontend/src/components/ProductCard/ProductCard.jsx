@@ -1,36 +1,25 @@
 import { useNavigate } from "react-router-dom";
-import "./ProductCard.css";
 
 export default function ProductCard({ product }) {
-
     const navigate = useNavigate();
 
     return (
         <div
-            className="product-card"
+            className="bg-white cursor-pointer group"
             onClick={() => navigate(`/products/${product.id}`)}
         >
-            <div className="product-image-wrapper">
+            <div className="w-full aspect-square overflow-hidden bg-gray-100 rounded-lg">
                 <img
                     src={`http://localhost:8081${product.imageUrl}`}
                     alt={product.name}
-                    className="product-image"
+                    className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
                 />
             </div>
-            <div className="product-info">
-                <div className="product-name">
-                    {product.name}
-                </div>
-
-                <div className="product-price">
-                    {product.price.toLocaleString()}원
-                </div>
-
-                <div className="product-stock">
-                    재고 {product.stock}개
-                </div>
+            <div className="pt-3">
+                <p className="text-sm text-gray-800 leading-snug line-clamp-2">{product.name}</p>
+                <p className="mt-1 text-base font-bold text-gray-900">{product.price.toLocaleString()}원</p>
+                <p className="mt-0.5 text-xs text-gray-400">재고 {product.stock}개</p>
             </div>
-
         </div>
     );
 }

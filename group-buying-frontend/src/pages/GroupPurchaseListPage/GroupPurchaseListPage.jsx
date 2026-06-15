@@ -1,69 +1,48 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useGroupPurchases } from "../../hooks/useGroupPurchases";
 import GroupPurchaseCard from "../../components/GroupPurchase/GroupPurchaseCard";
-import { useNavigate } from "react-router-dom";
+import Pagination from "../../components/Pagination/Pagination";
 import { useAuthStore } from "../../store/useAuthStore";
 
 const GroupPurchaseListPage = () => {
+    const [page, setPage] = useState(0);
     const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
-
     const navigate = useNavigate();
 
-    const handleCreate = () => {
-        navigate("/group-purchases/create");
-    };
+    const { data, isLoading, isError } = useGroupPurchases({ page, size: 9, keyword: "" });
 
-    const [page, setPage] = useState(0);
-    const size = 9;
-
-    const { data, isLoading, isError } = useGroupPurchases({
-        page,
-        size,
-        keyword: "",
-    });
-
-    if (isLoading) return <div>로딩 중...</div>;
-    if (isError) return <div>에러 발생</div>;
+    if (isLoading) return <div className="text-center py-20 text-gray-500">불러오는 중...</div>;
+    if (isError) return <div className="text-center py-20 text-red-500">데이터를 불러오지 못했습니다.</div>;
 
     const groupPurchases = data.content;
     const totalPages = data.totalPages;
 
     return (
-        <div style={{ padding: "20px" }}>
-            <h2>공동 구매 목록</h2>
+        <div>
+            <div className="flex items-center justify-between mb-6">
+                <h1 className="text-2xl font-bold text-gray-900">공동구매 목록</h1>
+                {isLoggedIn && (
+                    <button
+                        onClick={() => navigate("/group-purchases/create")}
+                        className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors"
+                    >
+                        + 공동구매 생성
+                    </button>
+                )}
+            </div>
 
-            {isLoggedIn && (
-                <button onClick={handleCreate}>
-                    공동구매 생성
-                </button>
+            {groupPurchases.length === 0 ? (
+                <p className="text-center py-20 text-gray-400">진행 중인 공동구매가 없습니다.</p>
+            ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                    {groupPurchases.map((gp) => (
+                        <GroupPurchaseCard key={gp.id} groupPurchase={gp} />
+                    ))}
+                </div>
             )}
 
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "16px" }}>
-                {groupPurchases.map((gp) => (
-                    <GroupPurchaseCard key={gp.id} groupPurchase={gp} />
-                ))}
-            </div>
-
-            {/* 페이지네이션 */}
-            <div style={{ marginTop: "20px" }}>
-                <button
-                    disabled={page === 0}
-                    onClick={() => setPage((prev) => prev - 1)}
-                >
-                    이전
-                </button>
-
-                <span style={{ margin: "0 10px" }}>
-                    {page + 1} / {totalPages}
-                </span>
-
-                <button
-                    disabled={page + 1 >= totalPages}
-                    onClick={() => setPage((prev) => prev + 1)}
-                >
-                    다음
-                </button>
-            </div>
+            <Pagination page={page} totalPages={totalPages} setPage={setPage} />
         </div>
     );
 };

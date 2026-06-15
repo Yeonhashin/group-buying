@@ -1,22 +1,19 @@
 package com.hayeon.groupbuy.domain.order.event;
 
-public class OrderCanceledEvent {
+public class OrderPaidEvent {
 
     private final Long orderId;
     private final Long userId;
     private final String groupPurchaseTitle;
-    private final boolean autoCanceled;
 
-    public OrderCanceledEvent(
+    public OrderPaidEvent(
             Long orderId,
             Long userId,
-            String groupPurchaseTitle,
-            boolean autoCanceled
+            String groupPurchaseTitle
     ) {
         this.orderId = orderId;
         this.userId = userId;
         this.groupPurchaseTitle = groupPurchaseTitle;
-        this.autoCanceled = autoCanceled;
     }
 
     public Long getOrderId() {
@@ -29,9 +26,5 @@ public class OrderCanceledEvent {
 
     public String getGroupPurchaseTitle() {
         return groupPurchaseTitle;
-    }
-
-    public boolean isAutoCanceled() {
-        return autoCanceled;
     }
 }

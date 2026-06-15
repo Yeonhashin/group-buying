@@ -100,12 +100,17 @@ public class GroupPurchaseScheduler {
                     eventPublisher.publishEvent(
                             new GroupPurchaseClosedEvent(gpId, isSuccess)
                     );
-
+                    log.info("이벤트 발행 완료");
                     log.info("공동구매 종료 처리 id={}, success={}, count={}", gpId, isSuccess, count);
                 }
 
             } catch (Exception e) {
-                log.error("Scheduler 처리 실패 id={}", gpId, e);
+                log.error(
+                        "Scheduler 처리 실패 id={}, error={}",
+                        gpId,
+                        e.getMessage(),
+                        e
+                );
             }
         }
     }

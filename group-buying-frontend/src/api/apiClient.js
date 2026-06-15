@@ -26,6 +26,7 @@ export async function apiFetch(url, options = {}) {
     const response = await fetch(`${API_BASE_URL}${url}`, {
         ...options,
         headers,
+        credentials: "include",
     });
 
     if (response.status === 401) {

@@ -69,4 +69,12 @@ public class OrderController {
         orderService.payOrder(orderId, paymentId);
     }
 
+    // ===== 주문 취소 =====
+    @PostMapping("/{orderId}/cancel")
+    public void cancelOrder(@PathVariable Long orderId,
+                            @AuthenticationPrincipal CustomUserDetails user) {
+
+        orderService.cancelOrder(orderId, user.getId());
+    }
+
 }

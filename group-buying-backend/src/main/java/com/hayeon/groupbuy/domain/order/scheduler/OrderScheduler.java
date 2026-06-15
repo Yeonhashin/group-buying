@@ -6,6 +6,9 @@ import com.hayeon.groupbuy.domain.order.enums.PaymentStatus;
 import com.hayeon.groupbuy.domain.order.repository.OrderRepository;
 import com.hayeon.groupbuy.domain.order.event.OrderCanceledEvent;
 
+import com.hayeon.groupbuy.domain.groupPurchase.entity.GroupPurchase;
+import com.hayeon.groupbuy.domain.groupPurchase.repository.GroupPurchaseRepository;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,12 +27,14 @@ public class OrderScheduler {
 
     private final ApplicationEventPublisher eventPublisher;
     private final OrderRepository orderRepository;
+    private final GroupPurchaseRepository groupPurchaseRepository;
 
     // 5분마다 실행
     @Scheduled(fixedDelay = 300000)
+    @Transactional
     public void cancelUnpaidOrders() {
 
-        LocalDateTime 기준시간 = LocalDateTime.now().minusHours(24);
+        LocalDateTime 기준시간 = LocalDateTime.now().minusHours(48);
 
         List<Order> orders =
                 orderRepository.findByStatusAndPaymentStatusInAndCreateDtBefore(
@@ -49,21 +54,32 @@ public class OrderScheduler {
         }
     }
 
-    // ===== 건별 트랜잭션 =====
-    @Transactional
-    public void cancelSingleOrder(Order order) {
+    // 단일 주문 처리 (같은 트랜잭션 안에서 동작)
+    private void cancelSingleOrder(Order order) {
 
-        // 상태 검증 (안전장치)
         if (order.getStatus() != OrderStatus.CREATED) {
             return;
         }
 
+        log.info("취소 전 status={}", order.getStatus());
+
+        // 1. 상태 변경 (Dirty Checking 대상)
         order.cancel();
 
+        log.info("취소 후 status={}", order.getStatus());
+
+        // 2. 그룹 구매 정보 조회 (알림 메시지용)
+        GroupPurchase gp =
+                groupPurchaseRepository.findById(order.getGroupPurchaseId())
+                        .orElseThrow(() -> new IllegalArgumentException("GROUP_PURCHASE_NOT_FOUND"));
+
+        // 3. 이벤트 발행 (자동취소 플래그 true)
         eventPublisher.publishEvent(
                 new OrderCanceledEvent(
                         order.getId(),
-                        order.getUserId()
+                        order.getUserId(),
+                        gp.getTitle(),
+                        true
                 )
         );
 

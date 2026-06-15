@@ -22,8 +22,10 @@ import com.hayeon.groupbuy.global.security.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.time.LocalDate;
 import java.util.List;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -107,11 +109,6 @@ public class GroupPurchaseParticipationService {
             );
 
             throw new RuntimeException("참여 처리 실패");
-        }
-
-        if (currentCount.equals(groupPurchase.getTargetParticipants())) {
-            groupPurchase.setStatus(GroupPurchaseStatus.COMPLETED);
-            groupPurchaseRepository.save(groupPurchase);
         }
     }
 

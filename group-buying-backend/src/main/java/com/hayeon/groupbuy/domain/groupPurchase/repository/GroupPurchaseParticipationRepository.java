@@ -36,20 +36,32 @@ public interface GroupPurchaseParticipationRepository
     );
 
     @Query("""
-        SELECT new com.hayeon.groupbuy.domain.order.dto.response.MyOrderResponse(
-            gp.id,
-            gp.title,
-            gp.status,
-            o.id,
-            o.status,
-            o.totalPrice
+            SELECT new com.hayeon.groupbuy.domain.order.dto.response.MyOrderResponse(
+                                                    gp.id,
+                                                    gp.title,
+                                                    product.name,
+                                                    gp.status,
+                                                    o.id,
+                                                    o.status,
+                                                    o.paymentStatus,
+                                                    p.status,
+                                                    o.createDt,
+                                                    gp.targetPrice,
+                                                    gp.targetParticipants,
+                                                    p.createDt,
+                                                    o.paidDt
         )
         FROM GroupPurchaseParticipation p
+        
         JOIN p.groupPurchase gp
-        LEFT JOIN Order o 
-            ON o.groupPurchaseId = gp.id AND o.userId = p.user.id
-        WHERE p.user.id = :userId
-        ORDER BY gp.id DESC
-    """)
+        JOIN gp.product product
+        
+        LEFT JOIN Order o
+            ON o.groupPurchaseId = gp.id
+            AND o.userId = p.user.id
+        
+        WHERE p.user.id = :userId        
+        ORDER BY p.createDt DESC
+        """)
     List<MyOrderResponse> findMyOrders(@Param("userId") Long userId);
 }

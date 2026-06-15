@@ -22,9 +22,19 @@ public class OrderCanceledEventListener {
 
         log.info("주문 취소 이벤트 수신 orderId={}", event.getOrderId());
 
-        notificationService.createOrderCanceled(
-                event.getUserId(),
-                event.getOrderId()
-        );
+        if (event.isAutoCanceled()) {
+
+            notificationService.createOrderAutoCanceled(
+                    event.getUserId(),
+                    event.getGroupPurchaseTitle()
+            );
+
+        } else {
+
+            notificationService.createOrderCanceledByUser(
+                    event.getUserId(),
+                    event.getGroupPurchaseTitle()
+            );
+        }
     }
 }

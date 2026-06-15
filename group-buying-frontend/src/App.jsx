@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import SignupPage from "./pages/RegisterPage.jsx";
 import LoginPage from "./pages/LoginPage";
@@ -8,8 +8,10 @@ import ProductFormPage from "./pages/ProductFormPage/ProductFormPage.jsx";
 import GroupPurchaseListPage from "./pages/GroupPurchaseListPage/GroupPurchaseListPage.jsx";
 import GroupPurchaseDetailPage from "./pages/GroupPurchaseDetailPage/GroupPurchaseDetailPage.jsx";
 import GroupPurchaseFormPage from "./pages/GroupPurchaseFormPage/GroupPurchaseFormPage.jsx";
+import MyPage from "./pages/MyPage/MyPage.jsx";
 
 import ProtectedRoute from "./components/ProtectedRoute";
+import Layout from "./components/Layout";
 import { Toaster } from "react-hot-toast";
 
 function App() {
@@ -18,49 +20,55 @@ function App() {
             <Toaster position="top-center" />
 
             <Routes>
+                <Route path="/" element={<Navigate to="/products" replace />} />
+
+                {/* 헤더 없는 인증 페이지 */}
                 <Route path="/signup" element={<SignupPage />} />
                 <Route path="/login" element={<LoginPage />} />
 
-                {/* 공개 페이지 */}
-                <Route path="/products" element={<ProductListPage />} />
-                <Route path="/products/:productId" element={<ProductDetailPage />} />
+                {/* 공통 레이아웃 적용 페이지 */}
+                <Route path="/products" element={<Layout><ProductListPage /></Layout>} />
+                <Route path="/products/:productId" element={<Layout><ProductDetailPage /></Layout>} />
+                <Route path="/group-purchases" element={<Layout><GroupPurchaseListPage /></Layout>} />
+                <Route path="/group-purchases/:groupPurchaseId" element={<Layout><GroupPurchaseDetailPage /></Layout>} />
 
-                <Route path="/group-purchases" element={<GroupPurchaseListPage />} />
-                <Route path="/group-purchases/:groupPurchaseId" element={<GroupPurchaseDetailPage />} />
-
-                {/* 로그인 필요 */}
+                <Route
+                    path="/mypage"
+                    element={
+                        <ProtectedRoute>
+                            <Layout><MyPage /></Layout>
+                        </ProtectedRoute>
+                    }
+                />
                 <Route
                     path="/products/create"
                     element={
                         <ProtectedRoute>
-                            <ProductFormPage mode="create" />
+                            <Layout><ProductFormPage mode="create" /></Layout>
                         </ProtectedRoute>
                     }
                 />
-
                 <Route
                     path="/products/:productId/edit"
                     element={
                         <ProtectedRoute>
-                            <ProductFormPage mode="edit" />
+                            <Layout><ProductFormPage mode="edit" /></Layout>
                         </ProtectedRoute>
                     }
                 />
-
                 <Route
                     path="/group-purchases/create"
                     element={
                         <ProtectedRoute>
-                            <GroupPurchaseFormPage mode="create" />
+                            <Layout><GroupPurchaseFormPage mode="create" /></Layout>
                         </ProtectedRoute>
                     }
                 />
-
                 <Route
                     path="/group-purchases/:groupPurchaseId/edit"
                     element={
                         <ProtectedRoute>
-                            <GroupPurchaseFormPage mode="edit" />
+                            <Layout><GroupPurchaseFormPage mode="edit" /></Layout>
                         </ProtectedRoute>
                     }
                 />
