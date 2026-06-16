@@ -71,7 +71,7 @@ jobs:
         run: |
           JAR_FILE=$(find build/libs -name "*.jar" ! -name "*-plain.jar" | head -n 1)
           nohup java -jar "$JAR_FILE" \
-            --spring.profiles.active=test \
+            --spring.profiles.active=test,e2e \
             > backend.log 2>&1 &
 
       - name: 백엔드 준비 대기
