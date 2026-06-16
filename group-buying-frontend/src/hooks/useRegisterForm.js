@@ -1,8 +1,11 @@
 import { useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { checkEmailApi, registerApi } from "../api/userApi";
 
 export const useRegisterForm = () => {
+
+    const navigate = useNavigate();
 
     const {
         register,
@@ -83,12 +86,21 @@ export const useRegisterForm = () => {
             await registerApi(formData);
 
             alert("회원가입 성공");
+            navigate("/login");
         } catch (error) {
 
-            setError("root.serverError", {
-                type: "server",
-                message: error.response?.data?.message || "회원가입 실패"
-            });
+            const fieldErrors = error.response?.data?.data;
+
+            if (fieldErrors && typeof fieldErrors === "object") {
+                Object.entries(fieldErrors).forEach(([field, message]) => {
+                    setError(field, { type: "server", message });
+                });
+            } else {
+                setError("root.serverError", {
+                    type: "server",
+                    message: error.response?.data?.message || "회원가입 실패"
+                });
+            }
 
         }
     };

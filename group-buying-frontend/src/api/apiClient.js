@@ -3,16 +3,9 @@ import { useAuthStore } from "../store/useAuthStore";
 const API_BASE_URL = "http://localhost:8081";
 
 export async function apiFetch(url, options = {}) {
-
     const token = localStorage.getItem("accessToken");
+    const headers = { ...options.headers };
 
-    const headers = {
-        ...options.headers,
-    };
-
-    console.log("token:", token);
-
-    // JSON body일 때만 Content-Type 설정
     if (!(options.body instanceof FormData)) {
         headers["Content-Type"] = "application/json";
     }
@@ -22,30 +15,37 @@ export async function apiFetch(url, options = {}) {
             ? token
             : `Bearer ${token}`;
     }
-    console.log("headers:", headers);
+
     const response = await fetch(`${API_BASE_URL}${url}`, {
         ...options,
         headers,
         credentials: "include",
     });
 
-    if (response.status === 401) {
-        useAuthStore.getState().logout();
-    }
-
     if (!response.ok) {
-
-        if (response.status === 401 || response.status === 403) {
+        // 인증이 필요한 요청에서만 강제 리다이렉트 처리
+        if ((response.status === 401 || response.status === 403) && !options.skipAuthRedirect) {
+            useAuthStore.getState().logout();
             alert("로그인이 필요합니다.");
             window.location.href = "/login";
             throw new Error("UNAUTHORIZED");
         }
 
         const text = await response.text();
-        throw new Error(text || "API 요청 실패");
+        let errorMessage = text || "API 요청 실패";
+
+        try {
+            const errorData = JSON.parse(text);
+            if (errorData.message) {
+                errorMessage = errorData.message;
+            }
+        } catch {
+            // JSON 파싱 실패하면 원본 텍스트 그대로 사용
+        }
+
+        throw new Error(errorMessage);
     }
 
     const text = await response.text();
-
     return text ? JSON.parse(text) : null;
 }

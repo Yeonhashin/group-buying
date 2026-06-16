@@ -71,6 +71,7 @@ const RegisterForm = () => {
                     {...register("nickname", {
                         required: "닉네임은 필수입니다",
                         minLength: { value: 2, message: "닉네임은 2자 이상이어야 합니다" },
+                        maxLength: { value: 5, message: "닉네임은 5자 이하이어야 합니다" },
                     })}
                     className={`w-full px-4 py-2.5 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent ${errors.nickname ? "border-red-400" : "border-gray-300"}`}
                 />
