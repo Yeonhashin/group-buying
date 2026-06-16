@@ -47,6 +47,8 @@ dependencies {
     testImplementation 'org.testcontainers:mysql:1.19.0'
     testImplementation 'org.testcontainers:junit-jupiter:1.19.0'
     testImplementation 'com.h2database:h2'
+
+    runtimeOnly 'com.h2database:h2'
 }
 //test {
 //    useJUnitPlatform()
