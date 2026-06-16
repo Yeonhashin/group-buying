@@ -5,8 +5,10 @@ import org.springframework.context.annotation.Configuration;
 
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.context.annotation.Profile;
 
 @Configuration
+@Profile("!test")
 public class RedisLuaConfig {
 
     @Bean

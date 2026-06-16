@@ -2,6 +2,9 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.3.5'
     id 'io.spring.dependency-management' version '1.1.0'
+
+    // jacoco
+    id 'jacoco'
 }
 
 group = 'com.hayeon'
@@ -40,8 +43,25 @@ dependencies {
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+    testImplementation 'org.testcontainers:mysql:1.19.0'
+    testImplementation 'org.testcontainers:junit-jupiter:1.19.0'
+    testImplementation 'com.h2database:h2'
 }
+//test {
+//    useJUnitPlatform()
+//    failOnNoDiscoveredTests = false
+//}
+
 test {
     useJUnitPlatform()
-    failOnNoDiscoveredTests = false
+    finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = true
+        html.required = true
+    }
 }
