@@ -50,7 +50,7 @@ jobs:
         working-directory: .
         run: |
           git fetch origin main
-          python scripts/suggest_tests.py origin/main || true
+          python scripts/suggest_tests.py origin/main
 
       - name: PR에 테스트 제안 코멘트 등록
         if: github.event_name == 'pull_request'
