@@ -46,7 +46,6 @@ jobs:
 
       - name: 이전 커버리지 리포트 다운로드
         continue-on-error: true
-        working-directory: .
         uses: dawidd6/action-download-artifact@v3
         with:
           workflow: test.yml
@@ -61,6 +60,7 @@ jobs:
           python-version: '3.11'
 
       - name: anthropic 패키지 설치
+        working-directory: .
         run: pip install anthropic
 
       - name: 커버리지 분석 (AI)
@@ -74,7 +74,6 @@ jobs:
 
       - name: PR에 분석 결과 코멘트 등록
         if: github.event_name == 'pull_request'
-        working-directory: .
         uses: marocchino/sticky-pull-request-comment@v2
         with:
             path: coverage_analysis.md
