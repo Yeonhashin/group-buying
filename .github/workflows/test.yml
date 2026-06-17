@@ -44,6 +44,42 @@ jobs:
           name: jacoco-report
           path: group-buying-backend/build/reports/jacoco/test/jacocoTestReport.xml
 
+      - name: 이전 커버리지 리포트 다운로드
+        continue-on-error: true
+        working-directory: .
+        uses: dawidd6/action-download-artifact@v3
+        with:
+          workflow: test.yml
+          name: jacoco-report
+          path: previous-coverage
+          branch: main
+          if_no_artifact_found: warn
+
+      - name: Python 설정
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: anthropic 패키지 설치
+        run: pip install anthropic
+
+      - name: 커버리지 분석 (AI)
+        working-directory: .
+        env:
+            ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |              
+          python scripts/analyze_coverage.py \
+          group-buying-backend/build/reports/jacoco/test/jacocoTestReport.xml \
+          previous-coverage/jacocoTestReport.xml || true
+
+      - name: PR에 분석 결과 코멘트 등록
+        if: github.event_name == 'pull_request'
+        working-directory: .
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+            path: coverage_analysis.md
+            header: coverage-analysis
+
   frontend-test:
     runs-on: ubuntu-latest
 
@@ -111,3 +147,4 @@ jobs:
         with:
           name: playwright-report
           path: group-buying-frontend/playwright-report
+
