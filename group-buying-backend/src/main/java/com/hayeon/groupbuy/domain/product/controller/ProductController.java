@@ -66,4 +66,12 @@ public class ProductController {
         ProductResponse product = productService.getProduct(id);
         return ResponseEntity.ok(CommonResponse.success(product));
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<CommonResponse<Void>> delete(
+            @PathVariable Long id
+    ) {
+        productService.delete(id);
+        return ResponseEntity.ok(CommonResponse.success(null));
+    }
 }
