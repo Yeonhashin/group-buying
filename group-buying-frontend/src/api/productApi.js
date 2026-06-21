@@ -37,3 +37,13 @@ export const updateProduct = async (productId, formData) => {
     });
     return res.data;
 };
+
+/**
+ * 상품 삭제
+ */
+export const deleteProduct = async (productId) => {
+    const res = await apiFetch(`/api/products/${productId}`, {
+        method: "DELETE",
+    });
+    return res.data;
+};

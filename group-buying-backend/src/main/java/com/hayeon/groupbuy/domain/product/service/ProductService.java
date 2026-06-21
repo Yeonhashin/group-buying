@@ -6,6 +6,7 @@ import com.hayeon.groupbuy.domain.product.entity.Product;
 import com.hayeon.groupbuy.domain.user.entity.User;
 import com.hayeon.groupbuy.domain.product.repository.ProductRepository;
 import com.hayeon.groupbuy.domain.user.repository.UserRepository;
+import com.hayeon.groupbuy.domain.groupPurchase.repository.GroupPurchaseRepository;
 import com.hayeon.groupbuy.global.exception.ResourceNotFoundException;
 import com.hayeon.groupbuy.global.exception.UnauthorizedException;
 import com.hayeon.groupbuy.global.exception.ConflictException;
@@ -34,6 +35,7 @@ public class ProductService {
 
     private final ProductRepository productRepository;
     private final UserRepository userRepository; // 🔥 추가
+    private final GroupPurchaseRepository groupPurchaseRepository;
 
     @Value("${file.upload.path}")
     private String uploadPath;
@@ -107,6 +109,25 @@ public class ProductService {
                 .orElseThrow(() -> new ResourceNotFoundException("존재하지 않는 상품입니다."));
 
         return ProductResponse.from(product);
+    }
+
+    @Transactional
+    public void delete(Long id) {
+        Long userId = SecurityUtil.getCurrentUserId()
+                .orElseThrow(() -> new UnauthorizedException("로그인이 필요합니다."));
+
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("존재하지 않는 상품입니다."));
+
+        if (!product.getUser().getId().equals(userId)) {
+            throw new UnauthorizedException("삭제 권한이 없습니다.");
+        }
+
+        if (groupPurchaseRepository.existsByProductId(id)) {
+            throw new ConflictException("공동구매에 사용된 상품은 삭제할 수 없습니다.");
+        }
+
+        product.delete();
     }
 
     private String fileUpload(MultipartFile file) {

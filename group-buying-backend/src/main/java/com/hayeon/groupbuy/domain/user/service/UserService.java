@@ -55,4 +55,6 @@ public class UserService {
 
         return new UserResponse(user.getEmail(), user.getNickname(), user.getCreatedAt());
     }
+
+    // test comment for diff detection
 }

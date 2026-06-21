@@ -37,6 +37,8 @@ public interface GroupPurchaseRepository extends JpaRepository<GroupPurchase, Lo
      */
     Optional<GroupPurchase> findById(Long id);
 
+    boolean existsByProductId(Long productId);
+
     /**
      * 🔥 상세 조회 전용 (핵심)
      */
