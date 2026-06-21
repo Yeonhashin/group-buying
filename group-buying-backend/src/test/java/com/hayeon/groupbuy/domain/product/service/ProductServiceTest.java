@@ -32,6 +32,8 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
+import static org.mockito.ArgumentMatchers.startsWith;
+import static org.mockito.ArgumentMatchers.eq;
 
 @ExtendWith(MockitoExtension.class)
 class ProductServiceTest {
@@ -178,6 +180,31 @@ class ProductServiceTest {
         productService.edit(100L, "이름", "설명", 1000, 1, null);
 
         then(existingProduct).should().update("이름", "설명", "/images/existing.jpg", 1000, 1);
+    }
+
+    @Test
+    @DisplayName("새 파일로 수정 시 imageUrl 갱신")
+    void edit_새파일로_이미지갱신() {
+        setSecurityContext(1L);
+
+        User owner = mock(User.class);
+        given(owner.getId()).willReturn(1L);
+
+        Product existingProduct = mock(Product.class);
+        given(existingProduct.getUser()).willReturn(owner);
+
+        given(productRepository.findById(100L)).willReturn(Optional.of(existingProduct));
+
+        MultipartFile newFile = new MockMultipartFile(
+                "file", "new.jpg", "image/jpeg", "new image content".getBytes()
+        );
+
+        productService.edit(100L, "이름", "설명", 1000, 1, newFile);
+
+        // then - fileUpload()가 호출되어 새로운 imageUrl(/images/로 시작)이 update에 전달됐는지 확인
+        then(existingProduct).should().update(
+                eq("이름"), eq("설명"), startsWith("/images/"), eq(1000), eq(1)
+        );
     }
 
     // ==================== getProductList() ====================
