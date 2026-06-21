@@ -26,6 +26,8 @@ import com.hayeon.groupbuy.domain.product.repository.ProductRepository;
 import com.hayeon.groupbuy.domain.user.entity.User;
 import com.hayeon.groupbuy.domain.user.repository.UserRepository;
 import com.hayeon.groupbuy.global.security.CustomUserDetails;
+import com.hayeon.groupbuy.global.exception.ConflictException;
+import com.hayeon.groupbuy.global.exception.ResourceNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -192,5 +194,57 @@ class GroupPurchaseIntegrationTest {
                 notificationRepository.findByUserIdOrderByCreateDtDesc(savedUser.getId());
         assertThat(notifications).hasSize(1);
         assertThat(notifications.get(0).getStatus()).isEqualTo(NotificationStatus.ORDER_CREATED);
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 상품으로 공동구매 생성 시 예외")
+    void 존재하지않는상품_공동구매생성_예외() {
+        CreateGroupPurchaseRequest request = mock(CreateGroupPurchaseRequest.class);
+        given(request.getProductId()).willReturn(999L);
+
+        assertThatThrownBy(() -> groupPurchaseService.save(request))
+                .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("이미 참여한 사용자 중복 참여 시 ConflictException")
+    void 중복참여_예외() {
+        GroupPurchase gp = GroupPurchase.create(
+                savedUser, savedProduct, "중복 참여 테스트", "설명",
+                9000, 5, LocalDate.now(), LocalDate.now().plusDays(7)
+        );
+        groupPurchaseRepository.save(gp);
+
+        given(redisRepository.join(gp.getId(), 5)).willReturn(1L);
+        participationService.join(gp.getId(), mock(JoinGroupPurchaseRequest.class));
+
+        // 두 번째 참여 시도
+        given(redisRepository.join(gp.getId(), 5)).willReturn(2L);
+        assertThatThrownBy(() -> participationService.join(gp.getId(), mock(JoinGroupPurchaseRequest.class)))
+                .isInstanceOf(ConflictException.class)
+                .hasMessageContaining("이미 참여한 공동구매입니다");
+    }
+
+    @Test
+    @DisplayName("참여 취소 후 DB 상태 CANCELED로 업데이트 확인")
+    void 참여취소_DB상태업데이트() {
+        GroupPurchase gp = GroupPurchase.create(
+                savedUser, savedProduct, "취소 테스트", "설명",
+                9000, 5, LocalDate.now(), LocalDate.now().plusDays(7)
+        );
+        groupPurchaseRepository.save(gp);
+
+        given(redisRepository.join(gp.getId(), 5)).willReturn(1L);
+        participationService.join(gp.getId(), mock(JoinGroupPurchaseRequest.class));
+
+        participationService.cancel(gp.getId());
+
+        List<GroupPurchaseParticipation> participations =
+                participationRepository.findAll().stream()
+                        .filter(p -> p.getGroupPurchase().getId().equals(gp.getId()))
+                        .toList();
+
+        assertThat(participations).hasSize(1);
+        assertThat(participations.get(0).getStatus()).isEqualTo(ParticipationStatus.CANCELED);
     }
 }
