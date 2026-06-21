@@ -15,7 +15,7 @@ jobs:
   backend-test:
     runs-on: ubuntu-latest
     env:
-      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}   # ← job 레벨에 한 번만
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
     defaults:
       run:
@@ -45,33 +45,19 @@ jobs:
         working-directory: .
         run: pip install anthropic
 
-#      - name: 코드 변경 감지 분석 (AI)
-#        if: github.event_name == 'pull_request'
-#        working-directory: .
-#        run: |
-#          git fetch origin main
-#          python scripts/suggest_tests.py origin/main
-
       - name: 코드 변경 감지 분석 (AI)
         if: github.event_name == 'pull_request'
         working-directory: .
         run: |
-          echo "현재 위치:"
-          pwd
-          echo "scripts 폴더 내용:"
-          ls -la scripts/
-          echo "git fetch 실행:"
           git fetch origin main
-          echo "Python 스크립트 실행:"
           python scripts/suggest_tests.py origin/main
-          echo "실행 완료, exit code: $?"
 
       - name: PR에 테스트 제안 코멘트 등록
         if: github.event_name == 'pull_request'
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           path: test_suggestions.md
-          header: test-suggestions
+          header: test-suggestions-${{ github.sha }}
 
       - name: 테스트 실행 + 커버리지 리포트 생성
         run: ./gradlew test jacocoTestReport
@@ -112,7 +98,7 @@ jobs:
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           path: coverage_analysis.md
-          header: coverage-analysis
+          header: coverage-analysis-${{ github.sha }}
 
   frontend-test:
     runs-on: ubuntu-latest
