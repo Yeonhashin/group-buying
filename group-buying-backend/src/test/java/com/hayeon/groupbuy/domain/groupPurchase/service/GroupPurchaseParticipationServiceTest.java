@@ -258,4 +258,40 @@ class GroupPurchaseParticipationServiceTest {
                 .isInstanceOf(ConflictException.class)
                 .hasMessageContaining("이미 취소된 공동구매입니다");
     }
+
+    @Test
+    @DisplayName("시작일 이전 공동구매 참여 시 ResourceNotFoundException")
+    void join_시작일이전_예외() {
+        setSecurityContext(1L);
+        given(userRepository.findById(1L)).willReturn(Optional.of(mock(User.class)));
+
+        GroupPurchase gp = mock(GroupPurchase.class);
+        lenient().when(gp.getStatus()).thenReturn(GroupPurchaseStatus.RECRUITING);
+        lenient().when(gp.getDeleteDt()).thenReturn(null);
+        given(gp.getStartDt()).willReturn(LocalDate.now().plusDays(1)); // 미래
+        lenient().when(gp.getEndDt()).thenReturn(LocalDate.now().plusDays(7));
+        given(groupPurchaseRepository.findById(100L)).willReturn(Optional.of(gp));
+
+        assertThatThrownBy(() -> participationService.join(100L, mock(JoinGroupPurchaseRequest.class)))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("참여 불가능한 공동구매입니다");
+    }
+
+    @Test
+    @DisplayName("종료일 이후 공동구매 참여 시 ResourceNotFoundException")
+    void join_종료일이후_예외() {
+        setSecurityContext(1L);
+        given(userRepository.findById(1L)).willReturn(Optional.of(mock(User.class)));
+
+        GroupPurchase gp = mock(GroupPurchase.class);
+        lenient().when(gp.getStatus()).thenReturn(GroupPurchaseStatus.RECRUITING);
+        lenient().when(gp.getDeleteDt()).thenReturn(null);
+        lenient().when(gp.getStartDt()).thenReturn(LocalDate.now().minusDays(7));
+        given(gp.getEndDt()).willReturn(LocalDate.now().minusDays(1)); // 과거
+        given(groupPurchaseRepository.findById(100L)).willReturn(Optional.of(gp));
+
+        assertThatThrownBy(() -> participationService.join(100L, mock(JoinGroupPurchaseRequest.class)))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("참여 불가능한 공동구매입니다");
+    }
 }
