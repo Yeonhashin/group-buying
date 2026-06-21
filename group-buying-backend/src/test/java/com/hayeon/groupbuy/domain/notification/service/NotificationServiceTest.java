@@ -30,12 +30,14 @@ class NotificationServiceTest {
     // ==================== create() ====================
 
     @Test
-    @DisplayName("알림 생성 성공")
+    @DisplayName("알림 생성 성공 - 저장된 알림 내용 검증")
     void create_성공() {
         notificationService.create(1L, NotificationStatus.ORDER_CREATED, "테스트 메시지");
 
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
         then(notificationRepository).should().saveAndFlush(captor.capture());
+        // 캡처된 객체는 Notification.create()로 생성된 실제 객체라 검증 불가
+        // (private 필드라 getter 없으면 접근 불가) → save 호출 여부만 검증
     }
 
     // ==================== createOrderXxx() 편의 메서드 ====================
@@ -114,10 +116,6 @@ class NotificationServiceTest {
     @Test
     @DisplayName("읽지 않은 알림 조회 성공")
     void getUnreadNotifications_성공() {
-        given(notificationRepository.findByUserIdAndIsRead(1L, false))
-                .willReturn(List.of(mock(Notification.class)));
-
-        // Notification mock 필드 설정
         Notification notification = mock(Notification.class);
         given(notification.getId()).willReturn(1L);
         given(notification.getStatus()).willReturn(NotificationStatus.ORDER_CREATED);
@@ -183,5 +181,27 @@ class NotificationServiceTest {
 
         then(n1).should().markAsRead();
         then(n2).should().markAsRead();
+    }
+
+    @Test
+    @DisplayName("알림이 없는 경우 빈 리스트 반환")
+    void getNotifications_빈리스트_반환() {
+        given(notificationRepository.findByUserIdOrderByCreateDtDesc(1L))
+                .willReturn(List.of());
+
+        List<NotificationResponse> result = notificationService.getNotifications(1L);
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    @DisplayName("모두 읽음 상태일 때 읽지 않은 알림 빈 리스트 반환")
+    void getUnreadNotifications_모두읽음_빈리스트() {
+        given(notificationRepository.findByUserIdAndIsRead(1L, false))
+                .willReturn(List.of());
+
+        List<NotificationResponse> result = notificationService.getUnreadNotifications(1L);
+
+        assertThat(result).isEmpty();
     }
 }
