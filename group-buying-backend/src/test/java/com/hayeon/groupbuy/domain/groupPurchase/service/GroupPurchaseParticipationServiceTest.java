@@ -294,4 +294,22 @@ class GroupPurchaseParticipationServiceTest {
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("참여 불가능한 공동구매입니다");
     }
+
+    @Test
+    @DisplayName("삭제된 공동구매 참여 시도 시 ResourceNotFoundException")
+    void join_삭제된공동구매_예외() {
+        setSecurityContext(1L);
+        given(userRepository.findById(1L)).willReturn(Optional.of(mock(User.class)));
+
+        GroupPurchase gp = mock(GroupPurchase.class);
+        given(gp.getDeleteDt()).willReturn(java.time.LocalDateTime.now()); // 삭제됨
+        lenient().when(gp.getStatus()).thenReturn(GroupPurchaseStatus.RECRUITING);
+        lenient().when(gp.getStartDt()).thenReturn(LocalDate.now().minusDays(1));
+        lenient().when(gp.getEndDt()).thenReturn(LocalDate.now().plusDays(7));
+        given(groupPurchaseRepository.findById(100L)).willReturn(Optional.of(gp));
+
+        assertThatThrownBy(() -> participationService.join(100L, mock(JoinGroupPurchaseRequest.class)))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("참여 불가능한 공동구매입니다");
+    }
 }
