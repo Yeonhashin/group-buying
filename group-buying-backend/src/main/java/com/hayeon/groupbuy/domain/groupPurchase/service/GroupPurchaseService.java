@@ -21,6 +21,7 @@ import com.hayeon.groupbuy.global.exception.UnauthorizedException;
 import com.hayeon.groupbuy.global.security.SecurityUtil;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Page;
@@ -29,6 +30,7 @@ import org.springframework.data.domain.Sort;
 import com.hayeon.groupbuy.domain.groupPurchase.redis.GroupPurchaseCountRedisRepository;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class GroupPurchaseService {
@@ -157,10 +159,14 @@ public class GroupPurchaseService {
     }
 
     private int getCurrentParticipants(Long groupPurchaseId) {
-        Long count = redisRepository.getCountOrDefault(groupPurchaseId);
-        return count.intValue();
+        try {
+            Long count = redisRepository.getCountOrDefault(groupPurchaseId);
+            return count.intValue();
+        } catch (Exception e) {
+            log.warn("Redis 조회 실패, 기본값 0 반환. groupPurchaseId={}", groupPurchaseId, e);
+            return 0;
+        }
     }
-
     private boolean isParticipated(Long groupPurchaseId) {
 
         Long userId = SecurityUtil.getCurrentUserId().orElse(null);
