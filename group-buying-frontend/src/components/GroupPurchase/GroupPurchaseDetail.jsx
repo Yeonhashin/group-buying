@@ -20,11 +20,11 @@ const GroupPurchaseDetail = ({ groupPurchase }) => {
 
     return (
         <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm mb-4">
-            <div className="w-full max-h-80 bg-gray-100 overflow-hidden">
+            <div className="w-full bg-gray-50 flex items-center justify-center p-4">
                 <img
                     src={`http://localhost:8081${product?.imageUrl}`}
                     alt={product?.name}
-                    className="w-full h-full object-cover"
+                    className="max-w-full max-h-80 object-contain"
                 />
             </div>
 

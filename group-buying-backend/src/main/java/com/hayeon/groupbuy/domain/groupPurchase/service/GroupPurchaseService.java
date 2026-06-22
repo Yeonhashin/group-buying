@@ -5,6 +5,7 @@ import com.hayeon.groupbuy.domain.groupPurchase.dto.request.UpdateGroupPurchaseR
 import com.hayeon.groupbuy.domain.groupPurchase.dto.response.GroupPurchaseResponse;
 import com.hayeon.groupbuy.domain.groupPurchase.dto.response.GroupPurchasePageResponse;
 import com.hayeon.groupbuy.domain.groupPurchase.dto.response.GroupPurchaseEditResponse;
+import com.hayeon.groupbuy.domain.groupPurchase.dto.response.ParticipantResponse;
 
 import com.hayeon.groupbuy.domain.groupPurchase.entity.GroupPurchase;
 import com.hayeon.groupbuy.domain.groupPurchase.repository.GroupPurchaseRepository;
@@ -135,10 +136,17 @@ public class GroupPurchaseService {
         int currentParticipants = getCurrentParticipants(groupPurchase.getId());
         boolean isParticipated = isParticipated(groupPurchase.getId());
 
+        List<ParticipantResponse> participants = groupPurchaseParticipationRepository
+                .findByGroupPurchaseIdAndStatus(groupPurchase.getId(), ParticipationStatus.ACTIVE)
+                .stream()
+                .map(ParticipantResponse::from)
+                .toList();
+
         return GroupPurchaseResponse.from(
                 groupPurchase,
                 currentParticipants,
-                isParticipated
+                isParticipated,
+                participants
         );
     }
 
