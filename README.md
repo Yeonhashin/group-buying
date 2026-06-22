@@ -1,3 +1,5 @@
+[![Backend Test](https://github.com/Yeonhashin/group-buying/actions/workflows/test.yml/badge.svg)](https://github.com/Yeonhashin/group-buying/actions/workflows/test.yml)
+[![codecov](https://codecov.io/gh/Yeonhashin/group-buying/branch/main/graph/badge.svg)](https://codecov.io/gh/Yeonhashin/group-buying)
 # Group Buying Commerce
 
 Spring Boot와 React를 기반으로 구현한 공동구매 커머스 서비스입니다.
