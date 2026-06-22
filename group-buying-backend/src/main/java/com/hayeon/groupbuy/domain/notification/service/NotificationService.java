@@ -111,6 +111,26 @@ public class NotificationService {
         );
     }
 
+    // ===== 공동구매 참여 =====
+    @Transactional
+    public void createParticipationJoined(Long userId, String groupPurchaseTitle) {
+        create(
+                userId,
+                NotificationStatus.PARTICIPATION_JOINED,
+                "[" + groupPurchaseTitle + "] 공동구매에 참여하였습니다."
+        );
+    }
+
+    // ===== 공동구매 참여 취소 =====
+    @Transactional
+    public void createParticipationCanceled(Long userId, String groupPurchaseTitle) {
+        create(
+                userId,
+                NotificationStatus.PARTICIPATION_CANCELED,
+                "[" + groupPurchaseTitle + "] 공동구매 참여를 취소하였습니다."
+        );
+    }
+
     // ===== 전체 조회 =====
     public List<NotificationResponse> getNotifications(Long userId) {
         return notificationRepository.findByUserIdOrderByCreateDtDesc(userId)
