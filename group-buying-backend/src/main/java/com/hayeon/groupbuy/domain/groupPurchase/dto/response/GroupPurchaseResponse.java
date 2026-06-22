@@ -5,6 +5,7 @@ import com.hayeon.groupbuy.domain.product.dto.response.ProductSummaryResponse;
 import com.hayeon.groupbuy.domain.groupPurchase.enums.GroupPurchaseStatus;
 
 import java.time.*;
+import java.util.List;
 
 public record GroupPurchaseResponse(
         Long id,
@@ -22,6 +23,8 @@ public record GroupPurchaseResponse(
 
         String remainingTime,
 
+        List<ParticipantResponse> participants,
+
         LocalDate startDt,
         LocalDate endDt,
         LocalDateTime createDt,
@@ -32,7 +35,6 @@ public record GroupPurchaseResponse(
     public static GroupPurchaseResponse from(GroupPurchase groupPurchase, int currentParticipants, boolean isParticipated) {
         String remainingTime =
                 calculateRemainingTime(groupPurchase);
-
 
         return new GroupPurchaseResponse(
                 groupPurchase.getId(),
@@ -48,6 +50,36 @@ public record GroupPurchaseResponse(
                 groupPurchase.getStatus().name(),
                 isParticipated,
                 remainingTime,
+
+                List.of(),
+
+                groupPurchase.getStartDt(),
+                groupPurchase.getEndDt(),
+                groupPurchase.getCreateDt(),
+                groupPurchase.getUpdateDt(),
+                groupPurchase.getDeleteDt()
+        );
+    }
+
+    public static GroupPurchaseResponse from(GroupPurchase groupPurchase, int currentParticipants, boolean isParticipated, List<ParticipantResponse> participants) {
+        String remainingTime =
+                calculateRemainingTime(groupPurchase);
+
+        return new GroupPurchaseResponse(
+                groupPurchase.getId(),
+                groupPurchase.getUser().getId(),
+                ProductSummaryResponse.from(groupPurchase.getProduct()),
+                groupPurchase.getTitle(),
+                groupPurchase.getDetails(),
+                groupPurchase.getTargetPrice(),
+                groupPurchase.getTargetParticipants(),
+                currentParticipants,
+
+                groupPurchase.getStatus().name(),
+                isParticipated,
+                remainingTime,
+
+                participants,
 
                 groupPurchase.getStartDt(),
                 groupPurchase.getEndDt(),
