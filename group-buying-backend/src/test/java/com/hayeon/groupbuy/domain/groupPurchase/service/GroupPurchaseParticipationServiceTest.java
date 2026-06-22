@@ -10,6 +10,7 @@ import com.hayeon.groupbuy.domain.groupPurchase.participation.entity.Participati
 import com.hayeon.groupbuy.domain.groupPurchase.redis.GroupPurchaseCountRedisRepository;
 import com.hayeon.groupbuy.domain.groupPurchase.repository.GroupPurchaseParticipationRepository;
 import com.hayeon.groupbuy.domain.groupPurchase.repository.GroupPurchaseRepository;
+import com.hayeon.groupbuy.domain.notification.service.NotificationService;
 import com.hayeon.groupbuy.domain.user.entity.User;
 import com.hayeon.groupbuy.domain.user.repository.UserRepository;
 import com.hayeon.groupbuy.global.exception.ConflictException;
@@ -43,6 +44,7 @@ class GroupPurchaseParticipationServiceTest {
     @Mock private GroupPurchaseRepository groupPurchaseRepository;
     @Mock private UserRepository userRepository;
     @Mock private RedisFailLogRepository redisFailLogRepository;
+    @Mock private NotificationService notificationService;
 
     @BeforeEach
     void setUp() {
@@ -214,8 +216,12 @@ class GroupPurchaseParticipationServiceTest {
     void cancel_성공() {
         setSecurityContext(1L);
 
+        GroupPurchase gp = mock(GroupPurchase.class);
+        given(gp.getTitle()).willReturn("테스트 공동구매");
+
         GroupPurchaseParticipation participation = mock(GroupPurchaseParticipation.class);
         given(participation.getStatus()).willReturn(ParticipationStatus.ACTIVE);
+        given(participation.getGroupPurchase()).willReturn(gp);
         given(participationRepository.findByGroupPurchaseIdAndUserId(100L, 1L))
                 .willReturn(Optional.of(participation));
 
@@ -293,6 +299,61 @@ class GroupPurchaseParticipationServiceTest {
         assertThatThrownBy(() -> participationService.join(100L, mock(JoinGroupPurchaseRequest.class)))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("참여 불가능한 공동구매입니다");
+    }
+
+    // ==================== 알림 생성 검증 ====================
+
+    @Test
+    @DisplayName("공동구매 참여 성공 시 PARTICIPATION_JOINED 알림이 생성된다")
+    void join_성공시_참여완료_알림_생성() {
+        setSecurityContext(1L);
+
+        GroupPurchase gp = mockRecruitingGroupPurchase();
+        given(gp.getTitle()).willReturn("테스트 공동구매");
+        given(userRepository.findById(1L)).willReturn(Optional.of(mock(User.class)));
+        given(groupPurchaseRepository.findById(100L)).willReturn(Optional.of(gp));
+        given(participationRepository.findByGroupPurchaseIdAndUserId(100L, 1L)).willReturn(Optional.empty());
+        given(redisRepository.join(100L, 10)).willReturn(1L);
+
+        participationService.join(100L, mock(JoinGroupPurchaseRequest.class));
+
+        then(notificationService).should().createParticipationJoined(1L, "테스트 공동구매");
+    }
+
+    @Test
+    @DisplayName("공동구매 참여 취소 시 PARTICIPATION_CANCELED 알림이 생성된다")
+    void cancel_성공시_취소_알림_생성() {
+        setSecurityContext(1L);
+
+        GroupPurchase gp = mock(GroupPurchase.class);
+        given(gp.getTitle()).willReturn("테스트 공동구매");
+
+        GroupPurchaseParticipation participation = mock(GroupPurchaseParticipation.class);
+        given(participation.getStatus()).willReturn(ParticipationStatus.ACTIVE);
+        given(participation.getGroupPurchase()).willReturn(gp);
+        given(participationRepository.findByGroupPurchaseIdAndUserId(100L, 1L))
+                .willReturn(Optional.of(participation));
+
+        participationService.cancel(100L);
+
+        then(notificationService).should().createParticipationCanceled(1L, "테스트 공동구매");
+    }
+
+    @Test
+    @DisplayName("참여 실패(인원 초과) 시 알림이 생성되지 않는다")
+    void join_인원초과시_알림_미생성() {
+        setSecurityContext(1L);
+
+        GroupPurchase gp = mockRecruitingGroupPurchase();
+        given(userRepository.findById(1L)).willReturn(Optional.of(mock(User.class)));
+        given(groupPurchaseRepository.findById(100L)).willReturn(Optional.of(gp));
+        given(participationRepository.findByGroupPurchaseIdAndUserId(100L, 1L)).willReturn(Optional.empty());
+        given(redisRepository.join(100L, 10)).willReturn(-1L);
+
+        assertThatThrownBy(() -> participationService.join(100L, mock(JoinGroupPurchaseRequest.class)))
+                .isInstanceOf(ConflictException.class);
+
+        then(notificationService).should(never()).createParticipationJoined(any(), any());
     }
 
     @Test

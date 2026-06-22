@@ -91,6 +91,34 @@ class NotificationServiceTest {
         then(notificationRepository).should().saveAndFlush(any(Notification.class));
     }
 
+    @Test
+    @DisplayName("공동구매 참여 알림 생성 시 PARTICIPATION_JOINED 상태와 제목이 메시지에 포함된다")
+    void createParticipationJoined_상태_및_메시지_검증() {
+        notificationService.createParticipationJoined(1L, "테스트 공동구매");
+
+        ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
+        then(notificationRepository).should().saveAndFlush(captor.capture());
+
+        Notification saved = captor.getValue();
+        assertThat(saved.getStatus()).isEqualTo(NotificationStatus.PARTICIPATION_JOINED);
+        assertThat(saved.getMessage()).contains("테스트 공동구매");
+        assertThat(saved.getUserId()).isEqualTo(1L);
+    }
+
+    @Test
+    @DisplayName("공동구매 참여 취소 알림 생성 시 PARTICIPATION_CANCELED 상태와 제목이 메시지에 포함된다")
+    void createParticipationCanceled_상태_및_메시지_검증() {
+        notificationService.createParticipationCanceled(1L, "테스트 공동구매");
+
+        ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
+        then(notificationRepository).should().saveAndFlush(captor.capture());
+
+        Notification saved = captor.getValue();
+        assertThat(saved.getStatus()).isEqualTo(NotificationStatus.PARTICIPATION_CANCELED);
+        assertThat(saved.getMessage()).contains("테스트 공동구매");
+        assertThat(saved.getUserId()).isEqualTo(1L);
+    }
+
     // ==================== getNotifications() ====================
 
     @Test
