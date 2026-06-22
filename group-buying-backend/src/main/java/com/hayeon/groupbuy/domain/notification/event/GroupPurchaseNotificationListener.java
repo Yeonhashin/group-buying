@@ -8,10 +8,7 @@ import com.hayeon.groupbuy.domain.notification.enums.NotificationStatus;
 import com.hayeon.groupbuy.domain.notification.service.NotificationService;
 import com.hayeon.groupbuy.domain.groupPurchase.entity.GroupPurchase;
 import com.hayeon.groupbuy.domain.groupPurchase.repository.GroupPurchaseRepository;
-import com.hayeon.groupbuy.domain.order.event.OrderCanceledEvent;
 import com.hayeon.groupbuy.domain.order.event.OrderPaidEvent;
-import com.hayeon.groupbuy.domain.order.entity.Order;
-import com.hayeon.groupbuy.domain.order.repository.OrderRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +26,6 @@ public class GroupPurchaseNotificationListener {
     private final GroupPurchaseParticipationRepository participationRepository;
     private final NotificationService notificationService;
     private final GroupPurchaseRepository groupPurchaseRepository;
-    private final OrderRepository orderRepository;
 
     @EventListener
     public void handle(GroupPurchaseClosedEvent event) {
@@ -77,64 +73,11 @@ public class GroupPurchaseNotificationListener {
     @EventListener
     public void handle(OrderPaidEvent event) {
 
-        Order order = orderRepository.findById(
-                event.getOrderId()
-        ).orElseThrow(
-                () -> new IllegalArgumentException("ORDER_NOT_FOUND")
-        );
-
-        GroupPurchase gp =
-                groupPurchaseRepository.findById(
-                        order.getGroupPurchaseId()
-                ).orElseThrow(
-                        () -> new IllegalArgumentException("GROUP_PURCHASE_NOT_FOUND")
-                );
-
         notificationService.createOrderPaid(
-                order.getUserId(),
-                gp.getTitle()
+                event.getUserId(),
+                event.getGroupPurchaseTitle()
         );
 
-        log.info(
-                "결제 완료 알림 생성 orderId={}",
-                order.getId()
-        );
-    }
-
-    @EventListener
-    public void handle(OrderCanceledEvent event) {
-
-        Order order = orderRepository.findById(
-                event.getOrderId()
-        ).orElseThrow(
-                () -> new IllegalArgumentException("ORDER_NOT_FOUND")
-        );
-
-        GroupPurchase gp =
-                groupPurchaseRepository.findById(
-                        order.getGroupPurchaseId()
-                ).orElseThrow(
-                        () -> new IllegalArgumentException("GROUP_PURCHASE_NOT_FOUND")
-                );
-
-        if (event.isAutoCanceled()) {
-
-            notificationService.createOrderAutoCanceled(
-                    order.getUserId(),
-                    gp.getTitle()
-            );
-
-        } else {
-
-            notificationService.createOrderCanceledByUser(
-                    order.getUserId(),
-                    gp.getTitle()
-            );
-        }
-
-        log.info(
-                "주문 취소 알림 생성 orderId={}",
-                order.getId()
-        );
+        log.info("결제 완료 알림 생성 orderId={}", event.getOrderId());
     }
 }

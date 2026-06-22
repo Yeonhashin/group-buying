@@ -9,11 +9,9 @@ export const useOrders = () => {
         queryKey: ["orders"],
         queryFn: orderApi.fetchMyOrders,
 
-        staleTime: 1000 * 60 * 5,
-
         refetchOnWindowFocus: false,
         refetchOnReconnect: false,
-        refetchOnMount: false,
+        refetchOnMount: "always",
     });
 };
 

@@ -14,12 +14,9 @@ export const useNotifications = () => {
         queryKey: ["notifications"],
         queryFn: notificationApi.fetchNotifications,
 
-        staleTime: 1000 * 60 * 5,
-        gcTime: 1000 * 60 * 30,
-
         refetchOnWindowFocus: false,
         refetchOnReconnect: false,
-        refetchOnMount: false,
+        refetchOnMount: "always",
     });
 };
 
