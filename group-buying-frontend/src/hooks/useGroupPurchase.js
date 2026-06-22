@@ -69,6 +69,7 @@ export const useJoinGroupPurchase = (groupPurchaseId) => {
 
         onSettled: () => {
             queryClient.invalidateQueries({ queryKey: key });
+            queryClient.invalidateQueries({ queryKey: ["notifications"] });
         },
     });
 };
@@ -109,6 +110,7 @@ export const useCancelGroupPurchase = (groupPurchaseId) => {
 
         onSettled: () => {
             queryClient.invalidateQueries({ queryKey: key });
+            queryClient.invalidateQueries({ queryKey: ["notifications"] });
         },
     });
 };

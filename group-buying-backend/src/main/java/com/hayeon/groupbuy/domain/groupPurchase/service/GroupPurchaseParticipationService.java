@@ -12,6 +12,7 @@ import com.hayeon.groupbuy.domain.groupPurchase.compensation.repository.RedisFai
 import com.hayeon.groupbuy.domain.groupPurchase.redis.GroupPurchaseCountRedisRepository;
 import com.hayeon.groupbuy.domain.groupPurchase.enums.GroupPurchaseStatus;
 
+import com.hayeon.groupbuy.domain.notification.service.NotificationService;
 import com.hayeon.groupbuy.domain.user.entity.User;
 import com.hayeon.groupbuy.domain.user.repository.UserRepository;
 import com.hayeon.groupbuy.global.exception.ConflictException;
@@ -37,6 +38,7 @@ public class GroupPurchaseParticipationService {
     private final GroupPurchaseRepository groupPurchaseRepository;
     private final UserRepository userRepository;
     private final RedisFailLogRepository redisFailLogRepository;
+    private final NotificationService notificationService;
 
     @Transactional
     public void join(Long id, JoinGroupPurchaseRequest request) {
@@ -95,6 +97,8 @@ public class GroupPurchaseParticipationService {
 
             groupPurchaseParticipationRepository.save(participation);
 
+            notificationService.createParticipationJoined(userId, groupPurchase.getTitle());
+
         } catch (Exception e) {
 
             // ❗ Redis 롤백
@@ -128,6 +132,11 @@ public class GroupPurchaseParticipationService {
         }
 
         participation.setStatus(ParticipationStatus.CANCELED);
+
+        notificationService.createParticipationCanceled(
+                userId,
+                participation.getGroupPurchase().getTitle()
+        );
 
         try {
             groupPurchaseCountRedisRepository.cancel(id);

@@ -1,4 +1,7 @@
+import { useNavigate } from "react-router-dom";
+
 function MyOrderItem({ orders, onPay, onCancel }) {
+    const navigate = useNavigate();
 
     const isExpired = (order) => {
         const deadline = new Date(order.orderCreateDt);
@@ -63,7 +66,9 @@ function MyOrderItem({ orders, onPay, onCancel }) {
         return null;
     };
 
-    if (!orders.length) {
+    const visibleOrders = orders.filter((order) => order.participationStatus !== "CANCELED");
+
+    if (!visibleOrders.length) {
         return <p className="text-center py-12 text-gray-400 text-sm">주문 내역이 없습니다.</p>;
     }
 
@@ -84,11 +89,18 @@ function MyOrderItem({ orders, onPay, onCancel }) {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
-                        {orders.map((order, index) => {
+                        {visibleOrders.map((order, index) => {
                             const status = getStatus(order);
                             return (
                                 <tr key={`${order.groupPurchaseId}-${index}`} className="hover:bg-gray-50">
-                                    <td className="px-5 py-4 text-gray-800 font-medium">{order.title}</td>
+                                    <td className="px-5 py-4">
+                                        <button
+                                            onClick={() => navigate(`/group-purchases/${order.groupPurchaseId}`)}
+                                            className="font-medium text-gray-800 hover:text-indigo-600 hover:underline text-left"
+                                        >
+                                            {order.title}
+                                        </button>
+                                    </td>
                                     <td className="px-5 py-4 text-gray-500">{formatDate(order.participationDt)}</td>
                                     <td className="px-5 py-4">
                                         <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${status.className}`}>
