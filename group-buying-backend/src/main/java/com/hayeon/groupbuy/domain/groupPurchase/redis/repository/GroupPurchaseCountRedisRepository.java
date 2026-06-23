@@ -34,18 +34,12 @@ public class GroupPurchaseCountRedisRepository {
     }
 
     public Long getCount(Long groupPurchaseId) {
-
         String key = RedisKeyManager.countKey(groupPurchaseId);
-
-        String value = redisTemplate.opsForValue().get(key);
-
-        if (value == null) {
-            return null;
-        }
-
         try {
+            String value = redisTemplate.opsForValue().get(key);
+            if (value == null) return null;
             return Long.parseLong(value);
-        } catch (NumberFormatException e) {
+        } catch (Exception e) {
             return null;
         }
     }
@@ -59,17 +53,13 @@ public class GroupPurchaseCountRedisRepository {
     }
 
     public long getCountOrDefault(Long groupPurchaseId) {
-
         String key = RedisKeyManager.countKey(groupPurchaseId);
-        String value = redisTemplate.opsForValue().get(key);
-
-        if (value == null) {
-            return 0L;
-        }
-
         try {
+            String value = redisTemplate.opsForValue().get(key);
+            if (value == null) return 0L;
             return Long.parseLong(value);
-        } catch (NumberFormatException e) {
+        } catch (Exception e) {
+            // Redis 연결 실패 시 DB 값 fallback
             return 0L;
         }
     }
