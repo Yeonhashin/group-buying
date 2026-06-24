@@ -1,0 +1,93 @@
+[1mdiff --git a/scripts/suggest_tests.py b/scripts/suggest_tests.py[m
+[1mindex e69de29..c4cd160 100644[m
+[1m--- a/scripts/suggest_tests.py[m
+[1m+++ b/scripts/suggest_tests.py[m
+[36m@@ -0,0 +1,87 @@[m
+[32m+[m[32mimport subprocess[m
+[32m+[m[32mimport anthropic[m
+[32m+[m[32mimport os[m
+[32m+[m[32mimport sys[m
+[32m+[m
+[32m+[m
+[32m+[m[32mdef get_diff(base_branch: str = "origin/main") -> str:[m
+[32m+[m[32m    """현재 브랜치와 base 브랜치 간의 diff를 가져옴 (Java 파일만)"""[m
+[32m+[m[32m    try:[m
+[32m+[m[32m        result = subprocess.run([m
+[32m+[m[32m            ["git", "diff", f"{base_branch}...HEAD", "--", "*.java"],[m
+[32m+[m[32m            capture_output=True, text=True, check=True[m
+[32m+[m[32m        )[m
+[32m+[m[32m        return result.stdout[m
+[32m+[m[32m    except subprocess.CalledProcessError as e:[m
+[32m+[m[32m        print(f"git diff 실패: {e.stderr}")[m
+[32m+[m[32m        return ""[m
+[32m+[m
+[32m+[m
+[32m+[m[32mdef get_changed_files(base_branch: str = "origin/main") -> list:[m
+[32m+[m[32m    """변경된 Java 파일 목록"""[m
+[32m+[m[32m    try:[m
+[32m+[m[32m        result = subprocess.run([m
+[32m+[m[32m            ["git", "diff", "--name-only", f"{base_branch}...HEAD", "--", "*.java"],[m
+[32m+[m[32m            capture_output=True, text=True, check=True[m
+[32m+[m[32m        )[m
+[32m+[m[32m        return [f for f in result.stdout.strip().split("\n") if f][m
+[32m+[m[32m    except subprocess.CalledProcessError:[m
+[32m+[m[32m        return [][m
+[32m+[m
+[32m+[m
+[32m+[m[32mdef analyze_diff_with_ai(diff: str, changed_files: list) -> str:[m
+[32m+[m[32m    """diff를 Claude API로 분석하여 테스트 케이스 제안받기"""[m
+[32m+[m[32m    client = anthropic.Anthropic(api_key=os.environ['ANTHROPIC_API_KEY'])[m
+[32m+[m
+[32m+[m[32m    # diff가 너무 길면 일부만 사용 (토큰 제한 고려)[m
+[32m+[m[32m    truncated_diff = diff[:8000][m
+[32m+[m
+[32m+[m[32m    files_list = "\n".join(f"- {f}" for f in changed_files)[m
+[32m+[m
+[32m+[m[32m    response = client.messages.create([m
+[32m+[m[32m        model="claude-sonnet-4-5",[m
+[32m+[m[32m        max_tokens=1500,[m
+[32m+[m[32m        messages=[{[m
+[32m+[m[32m            "role": "user",[m
+[32m+[m[32m            "content": f"""다음은 Spring Boot 프로젝트의 PR에서 변경된 Java 코드 diff야.[m
+[32m+[m
+[32m+[m[32m변경된 파일:[m
+[32m+[m[32m{files_list}[m
+[32m+[m
+[32m+[m[32mdiff 내용:[m
+[32m+[m[32m```diff[m
+[32m+[m[32m{truncated_diff}[m
+[32m+[m[32m```[m
+[32m+[m
+[32m+[m[32m이 변경사항을 분석해서:[m
+[32m+[m[32m1. 새로 추가되거나 수정된 로직 중 테스트가 필요한 부분을 짧게 요약해줘[m
+[32m+[m[32m2. JUnit5 + Mockito 기준으로 추가하면 좋을 테스트 케이스를 3~5개 제목 형태로 제안해줘 (예외 처리, 경계값, 정상 케이스 등 다양하게)[m
+[32m+[m[32m3. 너무 길게 쓰지 말고 핵심만 markdown 형식으로 간결하게 정리해줘"""[m
+[32m+[m[32m        }][m
+[32m+[m[32m    )[m
+[32m+[m[32m    return response.content[0].text[m
+[32m+[m
+[32m+[m
+[32m+[m[32mdef main():[m
+[32m+[m[32m    base_branch = sys.argv[1] if len(sys.argv) > 1 else "origin/main"[m
+[32m+[m
+[32m+[m[32m    changed_files = get_changed_files(base_branch)[m
+[32m+[m
+[32m+[m[32m    if not changed_files:[m
+[32m+[m[32m        output = "## 🤖 AI 테스트 케이스 제안\n\n변경된 Java 파일이 없습니다."[m
+[32m+[m[32m    else:[m
+[32m+[m[32m        diff = get_diff(base_branch)[m
+[32m+[m[32m        if not diff.strip():[m
+[32m+[m[32m            output = "## 🤖 AI 테스트 케이스 제안\n\ndiff 내용을 가져올 수 없습니다."[m
+[32m+[m[32m        else:[m
+[32m+[m[32m            analysis = analyze_diff_with_ai(diff, changed_files)[m
+[32m+[m[32m            output = f"## 🤖 AI 테스트 케이스 제안\n\n**변경된 파일:** {len(changed_files)}개\n\n{analysis}"[m
+[32m+[m
+[32m+[m[32m    with open('test_suggestions.md', 'w', encoding='utf-8') as f:[m
+[32m+[m[32m        f.write(output)[m
+[32m+[m
+[32m+[m[32m    print("분석 결과가 test_suggestions.md에 저장되었습니다.")[m
+[32m+[m
+[32m+[m
+[32m+[m[32mif __name__ == '__main__':[m
+[32m+[m[32m    main()[m
+\ No newline at end of file[m
