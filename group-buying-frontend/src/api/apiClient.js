@@ -1,6 +1,6 @@
 import { useAuthStore } from "../store/useAuthStore";
 
-const API_BASE_URL = "http://localhost:8081";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8081";
 
 export async function apiFetch(url, options = {}) {
     const token = localStorage.getItem("accessToken");
