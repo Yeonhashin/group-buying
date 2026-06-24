@@ -10,7 +10,7 @@ export default function ProductCard({ product }) {
         >
             <div className="w-full aspect-square overflow-hidden bg-gray-100 rounded-lg">
                 <img
-                    src={`http://localhost:8081${product.imageUrl}`}
+                    src={`${import.meta.env.VITE_API_URL || "http://localhost:8081"}${product.imageUrl}`}
                     alt={product.name}
                     className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
                 />
