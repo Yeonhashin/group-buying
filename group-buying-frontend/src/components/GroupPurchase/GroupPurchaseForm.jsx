@@ -65,7 +65,9 @@ const GroupPurchaseForm = ({ initialData, isEditMode, onSubmit, isSubmitting }) 
                 {selectedProduct && (
                     <div className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
                         <img
-                            src={`${import.meta.env.VITE_API_URL || "http://localhost:8081"}${selectedProduct.imageUrl}`}
+                            src={selectedProduct?.imageUrl?.startsWith('http')
+                                ? selectedProduct?.imageUrl
+                                : `${import.meta.env.VITE_API_URL || "http://localhost:8081"}${selectedProduct?.imageUrl}`}
                             alt={selectedProduct.name}
                             className="w-16 h-16 object-cover rounded-lg border border-gray-200"
                         />

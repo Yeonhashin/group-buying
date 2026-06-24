@@ -37,7 +37,9 @@ function ProductDetailPage() {
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                 <div className="w-full aspect-square bg-gray-100">
                     <img
-                        src={`${import.meta.env.VITE_API_URL || "http://localhost:8081"}${product.imageUrl}`}
+                        src={product?.imageUrl?.startsWith('http')
+                            ? product?.imageUrl
+                            : `${import.meta.env.VITE_API_URL || "http://localhost:8081"}${product?.imageUrl}`}
                         alt={product.name}
                         className="w-full h-full object-cover"
                     />
