@@ -20,7 +20,7 @@ const GroupPurchaseCard = ({ groupPurchase }) => {
         >
             <div className="aspect-square w-full bg-gray-100 overflow-hidden">
                 <img
-                    src={`${import.meta.env.VITE_API_URL || "http://localhost:8081"}${product?.imageUrl}`}
+                    src={{product?.imageUrl?.startsWith('http') ? product?.imageUrl : `${import.meta.env.VITE_API_URL || "http://localhost:8081"}${product?.imageUrl}`}}
                     alt={product?.name}
                     className="w-full h-full object-cover"
                 />

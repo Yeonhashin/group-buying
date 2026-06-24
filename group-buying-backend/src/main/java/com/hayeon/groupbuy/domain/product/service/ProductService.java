@@ -11,6 +11,8 @@ import com.hayeon.groupbuy.global.exception.ResourceNotFoundException;
 import com.hayeon.groupbuy.global.exception.UnauthorizedException;
 import com.hayeon.groupbuy.global.exception.ConflictException;
 import com.hayeon.groupbuy.global.security.SecurityUtil;
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 
 import lombok.RequiredArgsConstructor;
 
@@ -21,13 +23,15 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.data.domain.Sort;
-import java.util.List;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
+import java.util.List;
 import java.util.UUID;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -36,6 +40,7 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final UserRepository userRepository; // 🔥 추가
     private final GroupPurchaseRepository groupPurchaseRepository;
+    private final Cloudinary cloudinary;
 
     @Value("${file.upload.path}")
     private String uploadPath;
@@ -131,27 +136,39 @@ public class ProductService {
     }
 
     private String fileUpload(MultipartFile file) {
-        if (file.isEmpty()) {
-            throw new RuntimeException("업로드 파일이 없습니다.");
-        }
-
         try {
-            String originalFilename = file.getOriginalFilename();
-            String storedFileName = UUID.randomUUID() + "_" + originalFilename;
-
-            Path uploadDir = Paths.get(System.getProperty("user.dir"), uploadPath);
-
-            if (!Files.exists(uploadDir)) {
-                Files.createDirectories(uploadDir);
-            }
-
-            Path filePath = uploadDir.resolve(storedFileName);
-            file.transferTo(filePath.toFile());
-
-            return "/images/" + storedFileName;
-
-        } catch (IOException e) {
-            throw new RuntimeException("파일 업로드 실패", e);
+            Map uploadResult = cloudinary.uploader().upload(
+                    file.getBytes(),
+                    ObjectUtils.asMap("folder", "group-buying")
+            );
+            return (String) uploadResult.get("secure_url");
+        } catch (Exception e) {
+            throw new RuntimeException("이미지 업로드 실패", e);
         }
     }
+
+//    private String fileUpload(MultipartFile file) {
+//        if (file.isEmpty()) {
+//            throw new RuntimeException("업로드 파일이 없습니다.");
+//        }
+//
+//        try {
+//            String originalFilename = file.getOriginalFilename();
+//            String storedFileName = UUID.randomUUID() + "_" + originalFilename;
+//
+//            Path uploadDir = Paths.get(System.getProperty("user.dir"), uploadPath);
+//
+//            if (!Files.exists(uploadDir)) {
+//                Files.createDirectories(uploadDir);
+//            }
+//
+//            Path filePath = uploadDir.resolve(storedFileName);
+//            file.transferTo(filePath.toFile());
+//
+//            return "/images/" + storedFileName;
+//
+//        } catch (IOException e) {
+//            throw new RuntimeException("파일 업로드 실패", e);
+//        }
+//    }
 }
