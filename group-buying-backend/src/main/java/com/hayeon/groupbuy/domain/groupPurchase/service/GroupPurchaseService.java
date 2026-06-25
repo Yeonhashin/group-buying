@@ -71,6 +71,7 @@ public class GroupPurchaseService {
                 .build();
 
         GroupPurchase saved = groupPurchaseRepository.save(groupPurchase);
+        redisRepository.setCount(saved.getId(), 0L);
         return saved.getId();
     }
 

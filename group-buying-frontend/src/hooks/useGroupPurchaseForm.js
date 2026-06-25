@@ -8,7 +8,7 @@ import {
 
 const queryKeys = {
     detail: (id) => ["groupPurchase", "detail", String(id)],
-    list: ["groupPurchase", "list"],
+    list: ["groupPurchases"],
 };
 
 /**
