@@ -20,7 +20,8 @@ const GroupPurchaseDetail = ({ groupPurchase }) => {
     const statusInfo = isUpcoming
         ? { label: "시작 예정", className: "bg-yellow-100 text-yellow-700" }
         : (STATUS_MAP[status] ?? STATUS_MAP.default);
-    const canEdit = currentUserId === groupPurchase.userId && status === "RECRUITING";
+    const isMyGroupPurchase = currentUserId === groupPurchase.userId;
+    const canEdit = isMyGroupPurchase && status === "RECRUITING";
 
     return (
         <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm mb-4">
@@ -38,6 +39,11 @@ const GroupPurchaseDetail = ({ groupPurchase }) => {
                 <div className="flex items-start justify-between gap-3 mb-3">
                     <h2 className="text-xl font-bold text-gray-900">{title}</h2>
                     <div className="flex items-center gap-2 shrink-0">
+                        {isMyGroupPurchase && (
+                            <span className="text-xs font-semibold px-3 py-1 rounded-full bg-indigo-600 text-white">
+                                내 공동구매
+                            </span>
+                        )}
                         {isParticipated && (
                             <span className="text-xs font-semibold px-3 py-1 rounded-full bg-green-500 text-white">
                                 참여중

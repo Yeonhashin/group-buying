@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { useAuthStore } from "../../store/useAuthStore";
 
 const STATUS_MAP = {
     COMPLETED: { label: "달성", className: "bg-green-100 text-green-700" },
@@ -8,7 +9,9 @@ const STATUS_MAP = {
 
 const GroupPurchaseCard = ({ groupPurchase }) => {
     const navigate = useNavigate();
-    const { id, title, targetPrice, currentParticipants, targetParticipants, remainingTime, product, status, startDt, isParticipated } = groupPurchase;
+    const user = useAuthStore((state) => state.user);
+    const { id, title, targetPrice, currentParticipants, targetParticipants, remainingTime, product, status, startDt, isParticipated, userId } = groupPurchase;
+    const isMyGroupPurchase = user && userId === user.id;
 
     const progress = Math.min((currentParticipants / targetParticipants) * 100, 100);
     const todayStr = new Date().toISOString().slice(0, 10);
@@ -33,6 +36,11 @@ const GroupPurchaseCard = ({ groupPurchase }) => {
                 {isParticipated && (
                     <span className="absolute top-2 left-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-green-500 text-white shadow">
                         참여중
+                    </span>
+                )}
+                {isMyGroupPurchase && (
+                    <span className="absolute top-2 right-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-600 text-white shadow">
+                        내 공동구매
                     </span>
                 )}
             </div>
