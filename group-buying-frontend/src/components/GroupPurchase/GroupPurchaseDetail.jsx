@@ -15,7 +15,8 @@ const GroupPurchaseDetail = ({ groupPurchase }) => {
 
     const { id, title, details, targetPrice, currentParticipants, targetParticipants, remainingTime, product, status, startDt, isParticipated } = groupPurchase;
     const progress = Math.min((currentParticipants / targetParticipants) * 100, 100);
-    const todayStr = new Date().toISOString().slice(0, 10);
+    const today = new Date();
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
     const isUpcoming = startDt && startDt > todayStr;
     const statusInfo = isUpcoming
         ? { label: "시작 예정", className: "bg-yellow-100 text-yellow-700" }

@@ -14,7 +14,8 @@ const GroupPurchaseCard = ({ groupPurchase }) => {
     const isMyGroupPurchase = user && userId === user.id;
 
     const progress = Math.min((currentParticipants / targetParticipants) * 100, 100);
-    const todayStr = new Date().toISOString().slice(0, 10);
+    const today = new Date();
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
     const isUpcoming = startDt && startDt > todayStr;
     const statusInfo = isUpcoming
         ? { label: "시작 예정", className: "bg-gray-100 text-gray-400" }
