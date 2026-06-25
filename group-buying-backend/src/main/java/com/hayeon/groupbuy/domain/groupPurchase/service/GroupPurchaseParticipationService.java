@@ -3,7 +3,6 @@ package com.hayeon.groupbuy.domain.groupPurchase.service;
 import com.hayeon.groupbuy.domain.groupPurchase.entity.GroupPurchase;
 import com.hayeon.groupbuy.domain.groupPurchase.participation.entity.GroupPurchaseParticipation;
 import com.hayeon.groupbuy.domain.groupPurchase.compensation.entity.RedisFailLog;
-
 import com.hayeon.groupbuy.domain.groupPurchase.repository.GroupPurchaseRepository;
 import com.hayeon.groupbuy.domain.groupPurchase.repository.GroupPurchaseParticipationRepository;
 import com.hayeon.groupbuy.domain.groupPurchase.dto.request.JoinGroupPurchaseRequest;
@@ -11,7 +10,6 @@ import com.hayeon.groupbuy.domain.groupPurchase.participation.entity.Participati
 import com.hayeon.groupbuy.domain.groupPurchase.compensation.repository.RedisFailLogRepository;
 import com.hayeon.groupbuy.domain.groupPurchase.redis.GroupPurchaseCountRedisRepository;
 import com.hayeon.groupbuy.domain.groupPurchase.enums.GroupPurchaseStatus;
-
 import com.hayeon.groupbuy.domain.groupPurchase.event.GroupPurchaseClosedEvent;
 import com.hayeon.groupbuy.domain.notification.service.NotificationService;
 import com.hayeon.groupbuy.domain.user.entity.User;
@@ -20,21 +18,19 @@ import com.hayeon.groupbuy.global.exception.ConflictException;
 import com.hayeon.groupbuy.global.exception.ResourceNotFoundException;
 import com.hayeon.groupbuy.global.exception.UnauthorizedException;
 import com.hayeon.groupbuy.global.security.SecurityUtil;
-
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.List;
-
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class GroupPurchaseParticipationService {
+
     private final GroupPurchaseParticipationRepository groupPurchaseParticipationRepository;
     private final GroupPurchaseCountRedisRepository groupPurchaseCountRedisRepository;
     private final GroupPurchaseRepository groupPurchaseRepository;
@@ -43,8 +39,16 @@ public class GroupPurchaseParticipationService {
     private final NotificationService notificationService;
     private final ApplicationEventPublisher eventPublisher;
 
+    // 컨트롤러에서 호출하는 퍼사드 메서드 (트랜잭션 밖)
+    public void joinAndPublishEvent(Long id, JoinGroupPurchaseRequest request) {
+        Long completedId = join(id, request);
+        if (completedId != null) {
+            eventPublisher.publishEvent(new GroupPurchaseClosedEvent(completedId, true));
+        }
+    }
+
     @Transactional
-    public void join(Long id, JoinGroupPurchaseRequest request) {
+    public Long join(Long id, JoinGroupPurchaseRequest request) {
 
         Long userId = SecurityUtil.getCurrentUserId()
                 .orElseThrow(() -> new UnauthorizedException("로그인이 필요합니다."));
@@ -55,12 +59,10 @@ public class GroupPurchaseParticipationService {
         GroupPurchase groupPurchase = groupPurchaseRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("참여할 공동구매가 존재하지 않습니다."));
 
-        // 참여 가능 여부 체크
         if (groupPurchase.getDeleteDt() != null ||
                 groupPurchase.getStatus() != GroupPurchaseStatus.RECRUITING ||
                 groupPurchase.getStartDt().isAfter(LocalDate.now()) ||
                 groupPurchase.getEndDt().isBefore(LocalDate.now())) {
-
             throw new ResourceNotFoundException("참여 불가능한 공동구매입니다.");
         }
 
@@ -69,12 +71,10 @@ public class GroupPurchaseParticipationService {
                         .findByGroupPurchaseIdAndUserId(id, userId)
                         .orElse(null);
 
-        if (participation != null &&
-                participation.getStatus() == ParticipationStatus.ACTIVE) {
+        if (participation != null && participation.getStatus() == ParticipationStatus.ACTIVE) {
             throw new ConflictException("이미 참여한 공동구매입니다.");
         }
 
-        // 🔥 Redis 먼저 (단순화)
         Long currentCount = groupPurchaseCountRedisRepository
                 .join(id, groupPurchase.getTargetParticipants());
 
@@ -83,13 +83,10 @@ public class GroupPurchaseParticipationService {
         }
 
         try {
-
             if (participation != null) {
-                // 재참여
                 participation.setStatus(ParticipationStatus.ACTIVE);
-                participation.setQuantity(1); // 고정
+                participation.setQuantity(1);
             } else {
-                // 신규
                 participation = GroupPurchaseParticipation.builder()
                         .groupPurchase(groupPurchase)
                         .user(user)
@@ -99,21 +96,17 @@ public class GroupPurchaseParticipationService {
             }
 
             groupPurchaseParticipationRepository.save(participation);
-
             notificationService.createParticipationJoined(userId, groupPurchase.getTitle());
 
-            // 목표 인원 달성 시 즉시 COMPLETED 처리
+            // 목표 인원 달성 시 COMPLETED 처리, 이벤트 발행은 트랜잭션 밖에서
             if (currentCount >= groupPurchase.getTargetParticipants()) {
                 groupPurchase.updateStatus(GroupPurchaseStatus.COMPLETED);
                 groupPurchaseRepository.save(groupPurchase);
-                eventPublisher.publishEvent(new GroupPurchaseClosedEvent(id, true));
+                return id; // 이벤트 발행 필요 신호
             }
 
         } catch (Exception e) {
-
-            // ❗ Redis 롤백
             groupPurchaseCountRedisRepository.cancel(id);
-
             try {
                 redisFailLogRepository.save(
                         RedisFailLog.builder()
@@ -125,9 +118,10 @@ public class GroupPurchaseParticipationService {
             } catch (Exception logEx) {
                 log.error("Redis 보상 로그 저장 실패 gpId={}", id, logEx);
             }
-
             throw new RuntimeException("참여 처리 실패");
         }
+
+        return null;
     }
 
     @Transactional
@@ -150,7 +144,6 @@ public class GroupPurchaseParticipationService {
 
         participation.setStatus(ParticipationStatus.CANCELED);
         groupPurchaseParticipationRepository.save(participation);
-
         notificationService.createParticipationCanceled(userId, groupPurchase.getTitle());
 
         Long newCount = null;
@@ -171,7 +164,6 @@ public class GroupPurchaseParticipationService {
             }
         }
 
-        // COMPLETED 상태에서 취소로 인원이 목표 미달이 되면 RECRUITING으로 복구
         if (groupPurchase.getStatus() == GroupPurchaseStatus.COMPLETED
                 && !groupPurchase.getEndDt().isBefore(LocalDate.now())) {
             long currentCount = newCount != null

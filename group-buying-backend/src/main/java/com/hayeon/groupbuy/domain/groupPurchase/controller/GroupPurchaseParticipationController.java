@@ -21,7 +21,7 @@ public class GroupPurchaseParticipationController {
             @PathVariable Long id,
             @Valid @RequestBody JoinGroupPurchaseRequest request
     ) {
-        groupPurchaseParticipationService.join(id, request);
+        groupPurchaseParticipationService.joinAndPublishEvent(id, request);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(CommonResponse.success(null));
     }
