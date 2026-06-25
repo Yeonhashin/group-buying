@@ -7,6 +7,7 @@ import com.hayeon.groupbuy.domain.notification.dto.response.NotificationResponse
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -112,7 +113,7 @@ public class NotificationService {
     }
 
     // ===== 공동구매 참여 =====
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void createParticipationJoined(Long userId, String groupPurchaseTitle) {
         create(
                 userId,
@@ -122,7 +123,7 @@ public class NotificationService {
     }
 
     // ===== 공동구매 참여 취소 =====
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void createParticipationCanceled(Long userId, String groupPurchaseTitle) {
         create(
                 userId,

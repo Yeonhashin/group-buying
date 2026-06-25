@@ -114,13 +114,17 @@ public class GroupPurchaseParticipationService {
             // ❗ Redis 롤백
             groupPurchaseCountRedisRepository.cancel(id);
 
-            redisFailLogRepository.save(
-                    RedisFailLog.builder()
-                            .groupPurchaseId(id)
-                            .userId(userId)
-                            .action("INCR_ROLLBACK")
-                            .build()
-            );
+            try {
+                redisFailLogRepository.save(
+                        RedisFailLog.builder()
+                                .groupPurchaseId(id)
+                                .userId(userId)
+                                .action("INCR_ROLLBACK")
+                                .build()
+                );
+            } catch (Exception logEx) {
+                log.error("Redis 보상 로그 저장 실패 gpId={}", id, logEx);
+            }
 
             throw new RuntimeException("참여 처리 실패");
         }
@@ -145,6 +149,7 @@ public class GroupPurchaseParticipationService {
         }
 
         participation.setStatus(ParticipationStatus.CANCELED);
+        groupPurchaseParticipationRepository.save(participation);
 
         notificationService.createParticipationCanceled(userId, groupPurchase.getTitle());
 
@@ -153,14 +158,17 @@ public class GroupPurchaseParticipationService {
             newCount = groupPurchaseCountRedisRepository.cancel(id);
         } catch (Exception e) {
             log.error("Redis DECR 실패", e);
-
-            redisFailLogRepository.save(
-                    RedisFailLog.builder()
-                            .groupPurchaseId(id)
-                            .userId(userId)
-                            .action("DECR")
-                            .build()
-            );
+            try {
+                redisFailLogRepository.save(
+                        RedisFailLog.builder()
+                                .groupPurchaseId(id)
+                                .userId(userId)
+                                .action("DECR")
+                                .build()
+                );
+            } catch (Exception logEx) {
+                log.error("Redis 보상 로그 저장 실패 gpId={}", id, logEx);
+            }
         }
 
         // COMPLETED 상태에서 취소로 인원이 목표 미달이 되면 RECRUITING으로 복구
@@ -171,6 +179,7 @@ public class GroupPurchaseParticipationService {
                     : groupPurchaseParticipationRepository.countByGroupPurchaseIdAndStatus(id, ParticipationStatus.ACTIVE);
             if (currentCount < groupPurchase.getTargetParticipants()) {
                 groupPurchase.updateStatus(GroupPurchaseStatus.RECRUITING);
+                groupPurchaseRepository.save(groupPurchase);
             }
         }
     }

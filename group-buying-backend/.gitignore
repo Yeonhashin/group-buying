@@ -52,6 +52,9 @@ target/
 .DS_Store
 Thumbs.db
 
+# local secrets
+src/main/resources/application-local.properties
+
 # docker
 *.pid
 *.sock
