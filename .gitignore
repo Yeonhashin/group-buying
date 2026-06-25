@@ -110,3 +110,11 @@ data/
 test-output/
 surefire-reports/
 group-buying-backend/uploads/
+
+# =========================
+
+# Properties
+
+# =========================
+
+**/application-local.properties

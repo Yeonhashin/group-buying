@@ -2,6 +2,8 @@ package com.hayeon.groupbuy.domain.groupPurchase.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -27,9 +29,11 @@ public class CreateGroupPurchaseRequest {
     private String details;
 
     @NotNull(message = "목표 금액을 입력해주세요.")
+    @Positive(message = "목표 금액은 1원 이상이어야 합니다.")
     private Integer targetPrice;
 
     @NotNull(message = "목표 참여 인원을 입력해주세요.")
+    @Min(value = 2, message = "목표 인원은 2명 이상이어야 합니다.")
     private Integer targetParticipants;
 
     @NotNull(message = "시작 시간을 입력해주세요.")

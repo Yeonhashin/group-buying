@@ -8,24 +8,33 @@ const STATUS_MAP = {
 
 const GroupPurchaseCard = ({ groupPurchase }) => {
     const navigate = useNavigate();
-    const { id, title, targetPrice, currentParticipants, targetParticipants, remainingTime, product, status } = groupPurchase;
+    const { id, title, targetPrice, currentParticipants, targetParticipants, remainingTime, product, status, startDt, isParticipated } = groupPurchase;
 
     const progress = Math.min((currentParticipants / targetParticipants) * 100, 100);
-    const statusInfo = STATUS_MAP[status] ?? STATUS_MAP.default;
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const isUpcoming = startDt && startDt > todayStr;
+    const statusInfo = isUpcoming
+        ? { label: "시작 예정", className: "bg-gray-100 text-gray-400" }
+        : (STATUS_MAP[status] ?? STATUS_MAP.default);
 
     return (
         <div
             onClick={() => navigate(`/group-purchases/${id}`)}
-            className="bg-white border border-gray-200 rounded-xl overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
+            className={`bg-white border border-gray-200 rounded-xl overflow-hidden cursor-pointer hover:shadow-md transition-shadow ${isUpcoming ? "opacity-70" : ""}`}
         >
-            <div className="aspect-square w-full bg-gray-100 overflow-hidden">
+            <div className="aspect-square w-full bg-gray-100 overflow-hidden relative">
                 <img
                     src={product?.imageUrl?.startsWith('http')
                         ? product?.imageUrl
                         : `${import.meta.env.VITE_API_URL || "http://localhost:8081"}${product?.imageUrl}`}
                     alt={product?.name}
-                    className="w-full h-full object-cover"
+                    className={`w-full h-full object-cover ${isUpcoming ? "grayscale" : ""}`}
                 />
+                {isParticipated && (
+                    <span className="absolute top-2 left-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-green-500 text-white shadow">
+                        참여중
+                    </span>
+                )}
             </div>
 
             <div className="p-4">
@@ -55,7 +64,12 @@ const GroupPurchaseCard = ({ groupPurchase }) => {
                     <span>{progress.toFixed(0)}%</span>
                 </div>
 
-                <p className="mt-2 text-xs text-gray-400">남은 기간: {remainingTime}</p>
+                {isUpcoming
+                    ? <p className="mt-2 text-xs text-gray-400">
+                        {`${parseInt(startDt.split("-")[1])}월 ${parseInt(startDt.split("-")[2])}일에 공동구매 시작`}
+                      </p>
+                    : <p className="mt-2 text-xs text-gray-400">남은 기간: {remainingTime}</p>
+                }
             </div>
         </div>
     );

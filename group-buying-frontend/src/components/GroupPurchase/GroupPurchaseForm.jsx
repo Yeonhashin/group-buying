@@ -1,5 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useProducts } from "../../hooks/useProducts";
+import { useAuthStore } from "../../store/useAuthStore";
+import toast from "react-hot-toast";
 
 const inputClass = "w-full px-4 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent";
 const labelClass = "block text-sm font-medium text-gray-700 mb-1";
@@ -10,8 +12,9 @@ const GroupPurchaseForm = ({ initialData, isEditMode, onSubmit, isSubmitting }) 
         targetPrice: "", targetParticipants: "", startDt: "", endDt: "",
     });
 
+    const user = useAuthStore((state) => state.user);
     const { data } = useProducts({ page: 0, size: 100 });
-    const products = data?.content || [];
+    const products = (data?.content || []).filter((p) => p.userId === user?.id);
 
     useEffect(() => {
         if (isEditMode && initialData) {
@@ -45,7 +48,20 @@ const GroupPurchaseForm = ({ initialData, isEditMode, onSubmit, isSubmitting }) 
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        onSubmit(form);
+
+        if (!form.productId) { toast.error("상품을 선택해주세요."); return; }
+        if (!form.title.trim()) { toast.error("제목을 입력해주세요."); return; }
+        if (!form.details.trim()) { toast.error("설명을 입력해주세요."); return; }
+        if (!form.targetPrice || Number(form.targetPrice) <= 0) { toast.error("목표 가격은 1원 이상이어야 합니다."); return; }
+        if (!form.targetParticipants || Number(form.targetParticipants) < 2) { toast.error("목표 인원은 2명 이상이어야 합니다."); return; }
+        if (!form.startDt) { toast.error("시작일을 입력해주세요."); return; }
+        if (!form.endDt) { toast.error("종료일을 입력해주세요."); return; }
+
+        const today = new Date().toISOString().slice(0, 10);
+        if (!isEditMode && form.startDt < today) { toast.error("시작일은 오늘 이후여야 합니다."); return; }
+        if (form.endDt <= form.startDt) { toast.error("종료일은 시작일보다 이후여야 합니다."); return; }
+
+        onSubmit({ ...form, title: form.title.trim(), details: form.details.trim() });
     };
 
     return (
@@ -54,12 +70,15 @@ const GroupPurchaseForm = ({ initialData, isEditMode, onSubmit, isSubmitting }) 
 
                 <div>
                     <label className={labelClass}>상품 선택</label>
-                    <select name="productId" value={form.productId} onChange={handleChange} className={inputClass}>
-                        <option value="">상품을 선택하세요</option>
+                    <select name="productId" value={form.productId} onChange={handleChange} className={inputClass} disabled={products.length === 0}>
+                        <option value="">{products.length === 0 ? "등록된 내 상품이 없습니다" : "상품을 선택하세요"}</option>
                         {products.map((p) => (
                             <option key={p.id} value={p.id}>{p.name}</option>
                         ))}
                     </select>
+                    {products.length === 0 && (
+                        <p className="mt-1 text-xs text-gray-400">공동구매를 만들려면 먼저 상품을 등록해주세요.</p>
+                    )}
                 </div>
 
                 {selectedProduct && (

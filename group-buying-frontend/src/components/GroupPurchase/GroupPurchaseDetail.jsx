@@ -13,9 +13,13 @@ const GroupPurchaseDetail = ({ groupPurchase }) => {
 
     if (!groupPurchase) return <div className="text-center py-10 text-gray-400">로딩 중...</div>;
 
-    const { id, title, details, targetPrice, currentParticipants, targetParticipants, remainingTime, product, status } = groupPurchase;
+    const { id, title, details, targetPrice, currentParticipants, targetParticipants, remainingTime, product, status, startDt, isParticipated } = groupPurchase;
     const progress = Math.min((currentParticipants / targetParticipants) * 100, 100);
-    const statusInfo = STATUS_MAP[status] ?? STATUS_MAP.default;
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const isUpcoming = startDt && startDt > todayStr;
+    const statusInfo = isUpcoming
+        ? { label: "시작 예정", className: "bg-yellow-100 text-yellow-700" }
+        : (STATUS_MAP[status] ?? STATUS_MAP.default);
     const canEdit = currentUserId === groupPurchase.userId && status === "RECRUITING";
 
     return (
@@ -33,9 +37,16 @@ const GroupPurchaseDetail = ({ groupPurchase }) => {
             <div className="p-6">
                 <div className="flex items-start justify-between gap-3 mb-3">
                     <h2 className="text-xl font-bold text-gray-900">{title}</h2>
-                    <span className={`shrink-0 text-xs font-medium px-3 py-1 rounded-full ${statusInfo.className}`}>
-                        {statusInfo.label}
-                    </span>
+                    <div className="flex items-center gap-2 shrink-0">
+                        {isParticipated && (
+                            <span className="text-xs font-semibold px-3 py-1 rounded-full bg-green-500 text-white">
+                                참여중
+                            </span>
+                        )}
+                        <span className={`text-xs font-medium px-3 py-1 rounded-full ${statusInfo.className}`}>
+                            {statusInfo.label}
+                        </span>
+                    </div>
                 </div>
 
                 <p className="text-sm text-gray-600 leading-relaxed mb-5">{details}</p>
@@ -53,7 +64,12 @@ const GroupPurchaseDetail = ({ groupPurchase }) => {
                     <span>{progress.toFixed(0)}%</span>
                 </div>
 
-                <p className="text-sm text-gray-400 mb-4">남은 기간: {remainingTime}</p>
+                {isUpcoming
+                    ? <p className="text-sm text-yellow-600 font-medium mb-4">
+                        {`${parseInt(startDt.split("-")[1])}월 ${parseInt(startDt.split("-")[2])}일에 공동구매 시작`}
+                      </p>
+                    : <p className="text-sm text-gray-400 mb-4">남은 기간: {remainingTime}</p>
+                }
 
                 {canEdit && (
                     <button

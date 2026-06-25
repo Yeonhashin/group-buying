@@ -5,8 +5,13 @@ import { useJoinGroupPurchase, useCancelGroupPurchase } from "../../hooks/useGro
 import { useAuthStore } from "../../store/useAuthStore";
 import ConfirmModal from "../common/ConfirmModal";
 
+const formatStartDate = (startDt) => {
+    const [, month, day] = startDt.split("-");
+    return `${parseInt(month)}월 ${parseInt(day)}일에 공동구매 시작`;
+};
+
 const ParticipationPanel = ({ groupPurchase }) => {
-    const { id, currentParticipants, targetParticipants, status, isParticipated } = groupPurchase;
+    const { id, currentParticipants, targetParticipants, status, isParticipated, startDt } = groupPurchase;
     const queryClient = useQueryClient();
     const joinMutation = useJoinGroupPurchase(id);
     const cancelMutation = useCancelGroupPurchase(id);
@@ -16,6 +21,9 @@ const ParticipationPanel = ({ groupPurchase }) => {
     const isRecruiting = status === "RECRUITING";
     const isFull = currentParticipants >= targetParticipants;
     const isLoading = joinMutation.isLoading || cancelMutation.isLoading;
+
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const isUpcoming = startDt && startDt > todayStr;
 
     const handleConfirm = () => {
         if (modalType === "join") {
@@ -41,7 +49,11 @@ const ParticipationPanel = ({ groupPurchase }) => {
 
     let buttonText, buttonClass, onClick, disabled = false;
 
-    if (!isLoggedIn) {
+    if (isUpcoming) {
+        buttonText = formatStartDate(startDt);
+        buttonClass = "bg-gray-200 text-gray-500 cursor-not-allowed";
+        disabled = true;
+    } else if (!isLoggedIn) {
         buttonText = "로그인 후 이용 가능";
         buttonClass = "bg-gray-200 text-gray-500 cursor-not-allowed";
         onClick = () => toast.error("로그인이 필요합니다.");

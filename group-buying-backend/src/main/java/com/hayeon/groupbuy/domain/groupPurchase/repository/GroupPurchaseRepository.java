@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,6 +25,18 @@ public interface GroupPurchaseRepository extends JpaRepository<GroupPurchase, Lo
             String keyword2,
             Pageable pageable
     );
+
+    @EntityGraph(attributePaths = {"product", "user"})
+    @Query("SELECT gp FROM GroupPurchase gp WHERE gp.title LIKE %:keyword% OR gp.product.name LIKE %:keyword%")
+    Page<GroupPurchase> findByTitleOrProductName(@Param("keyword") String keyword, Pageable pageable);
+
+    @EntityGraph(attributePaths = {"product", "user"})
+    @Query("SELECT gp FROM GroupPurchase gp WHERE gp.status = :status AND gp.startDt <= :today")
+    Page<GroupPurchase> findActiveByStatus(@Param("status") GroupPurchaseStatus status, @Param("today") LocalDate today, Pageable pageable);
+
+    @EntityGraph(attributePaths = {"product", "user"})
+    @Query("SELECT gp FROM GroupPurchase gp WHERE gp.status = :status AND gp.startDt <= :today AND (gp.title LIKE %:keyword% OR gp.product.name LIKE %:keyword%)")
+    Page<GroupPurchase> findActiveByStatusAndTitleOrProductName(@Param("status") GroupPurchaseStatus status, @Param("today") LocalDate today, @Param("keyword") String keyword, Pageable pageable);
 
     /**
      * 상태 조회

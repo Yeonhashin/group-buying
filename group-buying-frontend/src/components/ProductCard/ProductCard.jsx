@@ -5,21 +5,21 @@ export default function ProductCard({ product }) {
 
     return (
         <div
-            className="bg-white cursor-pointer group"
+            className="bg-white border border-gray-200 rounded-xl overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
             onClick={() => navigate(`/products/${product.id}`)}
         >
-            <div className="w-full aspect-square overflow-hidden bg-gray-100 rounded-lg">
+            <div className="aspect-square w-full bg-gray-100 overflow-hidden">
                 <img
                     src={product?.imageUrl?.startsWith('http')
                         ? product?.imageUrl
                         : `${import.meta.env.VITE_API_URL || "http://localhost:8081"}${product?.imageUrl}`}
                     alt={product.name}
-                    className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
+                    className="w-full h-full object-cover"
                 />
             </div>
-            <div className="pt-3">
-                <p className="text-sm text-gray-800 leading-snug line-clamp-2">{product.name}</p>
-                <p className="mt-1 text-base font-bold text-gray-900">{product.price.toLocaleString()}원</p>
+            <div className="p-4">
+                <p className="text-sm font-semibold text-gray-900 leading-snug line-clamp-2">{product.name}</p>
+                <p className="mt-1 text-sm font-bold text-indigo-600">{product.price.toLocaleString()}원</p>
                 <p className="mt-0.5 text-xs text-gray-400">재고 {product.stock}개</p>
             </div>
         </div>

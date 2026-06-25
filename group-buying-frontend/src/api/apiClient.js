@@ -23,8 +23,8 @@ export async function apiFetch(url, options = {}) {
     });
 
     if (!response.ok) {
-        // 인증이 필요한 요청에서만 강제 리다이렉트 처리
-        if ((response.status === 401 || response.status === 403) && !options.skipAuthRedirect) {
+        // 401: 인증 필요 → 로그아웃 후 리다이렉트
+        if (response.status === 401 && !options.skipAuthRedirect) {
             useAuthStore.getState().logout();
             alert("로그인이 필요합니다.");
             window.location.href = "/login";

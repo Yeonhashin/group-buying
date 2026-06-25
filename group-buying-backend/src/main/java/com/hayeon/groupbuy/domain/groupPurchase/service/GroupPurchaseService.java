@@ -15,6 +15,7 @@ import com.hayeon.groupbuy.domain.user.entity.User;
 import com.hayeon.groupbuy.domain.product.repository.ProductRepository;
 import com.hayeon.groupbuy.domain.user.repository.UserRepository;
 import com.hayeon.groupbuy.domain.groupPurchase.enums.GroupPurchaseStatus;
+import java.time.LocalDate;
 import com.hayeon.groupbuy.domain.groupPurchase.participation.entity.ParticipationStatus;
 import com.hayeon.groupbuy.global.exception.ConflictException;
 import com.hayeon.groupbuy.global.exception.ResourceNotFoundException;
@@ -92,14 +93,19 @@ public class GroupPurchaseService {
         groupPurchase.updateFromDto(request);
     }
 
-    public GroupPurchasePageResponse getGroupPurchases(int page, int size, String keyword) {
+    public GroupPurchasePageResponse getGroupPurchases(int page, int size, String keyword, boolean onlyRecruiting) {
         PageRequest pageRequest =
                 PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createDt"));
         Page<GroupPurchase> groupPurchases;
 
-        // 검색어가 존재할 경우 > 검색 기능 실시
-        if (keyword != null && !keyword.isBlank()) {
-            groupPurchases = groupPurchaseRepository.findByTitleContainingOrDetailsContaining(keyword, keyword, pageRequest);
+        boolean hasKeyword = keyword != null && !keyword.isBlank();
+
+        if (onlyRecruiting && hasKeyword) {
+            groupPurchases = groupPurchaseRepository.findActiveByStatusAndTitleOrProductName(GroupPurchaseStatus.RECRUITING, LocalDate.now(), keyword, pageRequest);
+        } else if (onlyRecruiting) {
+            groupPurchases = groupPurchaseRepository.findActiveByStatus(GroupPurchaseStatus.RECRUITING, LocalDate.now(), pageRequest);
+        } else if (hasKeyword) {
+            groupPurchases = groupPurchaseRepository.findByTitleOrProductName(keyword, pageRequest);
         } else {
             groupPurchases = groupPurchaseRepository.findAll(pageRequest);
         }

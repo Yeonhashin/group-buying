@@ -35,13 +35,13 @@ function ProductDetailPage() {
     return (
         <div className="max-w-2xl mx-auto">
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                <div className="w-full aspect-square bg-gray-100">
+                <div className="w-full bg-gray-50 flex items-center justify-center p-4">
                     <img
                         src={product?.imageUrl?.startsWith('http')
                             ? product?.imageUrl
                             : `${import.meta.env.VITE_API_URL || "http://localhost:8081"}${product?.imageUrl}`}
                         alt={product.name}
-                        className="w-full h-full object-cover"
+                        className="max-w-full max-h-80 object-contain"
                     />
                 </div>
 

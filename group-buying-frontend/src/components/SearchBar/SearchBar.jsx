@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-export default function SearchBar({ keyword, setKeyword, setPage }) {
+export default function SearchBar({ keyword, setKeyword, setPage, placeholder = "상품명으로 검색" }) {
     const [input, setInput] = useState(keyword);
 
     const handleSearch = () => {
@@ -25,7 +25,7 @@ export default function SearchBar({ keyword, setKeyword, setPage }) {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="상품명으로 검색"
+                placeholder={placeholder}
             />
             <button
                 className="px-4 py-2 text-sm font-medium bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"

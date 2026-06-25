@@ -13,7 +13,7 @@ import java.util.Date;
 public class JwtProvider {
 
     private final String SECRET_KEY = "mysecretjwtkeyforgroupbuyingproject2026verylongkey";
-    private final long EXPIRATION = 1000 * 60 * 30; // 30분
+    private final long EXPIRATION = 1000 * 60 * 60 * 2; // 2시간
     private final SecretKey key = Keys.hmacShaKeyFor(
             SECRET_KEY.getBytes(StandardCharsets.UTF_8)
     );
