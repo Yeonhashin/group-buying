@@ -20,7 +20,7 @@ const ParticipationPanel = ({ groupPurchase }) => {
 
     const isRecruiting = status === "RECRUITING";
     const isFull = currentParticipants >= targetParticipants;
-    const isLoading = joinMutation.isLoading || cancelMutation.isLoading;
+    const isLoading = joinMutation.isPending || cancelMutation.isPending;
 
     const todayStr = new Date().toISOString().slice(0, 10);
     const isUpcoming = startDt && startDt > todayStr;
@@ -32,7 +32,7 @@ const ParticipationPanel = ({ groupPurchase }) => {
                     toast.success("공동구매에 참여했습니다!");
                     queryClient.invalidateQueries({ queryKey: ["groupPurchase", String(id)] });
                 },
-                onError: (error) => toast.error(error?.response?.data?.message || "참여 중 오류 발생"),
+                onError: (error) => toast.error(error?.message || "참여 중 오류 발생"),
             });
         }
         if (modalType === "cancel") {
@@ -41,7 +41,7 @@ const ParticipationPanel = ({ groupPurchase }) => {
                     toast.success("참여를 취소했습니다.");
                     queryClient.invalidateQueries({ queryKey: ["groupPurchase", String(id)] });
                 },
-                onError: (error) => toast.error(error?.response?.data?.message || "취소 중 오류 발생"),
+                onError: (error) => toast.error(error?.message || "취소 중 오류 발생"),
             });
         }
         setModalType(null);
