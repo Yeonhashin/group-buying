@@ -46,7 +46,14 @@ function ProductDetailPage() {
                 </div>
 
                 <div className="p-6">
-                    <h1 className="text-xl font-bold text-gray-900 mb-2">{product.name}</h1>
+                    <div className="flex items-center gap-2 mb-2">
+                        <h1 className="text-xl font-bold text-gray-900">{product.name}</h1>
+                        {isOwner && (
+                            <span className="bg-indigo-600 text-white text-xs font-semibold px-2 py-0.5 rounded-full">
+                                내 상품
+                            </span>
+                        )}
+                    </div>
                     <p className="text-2xl font-bold text-indigo-600 mb-4">{product.price.toLocaleString()}원</p>
                     <p className="text-sm text-gray-600 leading-relaxed mb-4">{product.details}</p>
                     <p className="text-sm text-gray-400">재고 {product.stock}개</p>
