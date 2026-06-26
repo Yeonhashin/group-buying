@@ -30,6 +30,9 @@ public class GroupPurchaseNotificationListener {
     @EventListener
     public void handle(GroupPurchaseClosedEvent event) {
 
+        // 성공 알림은 GroupPurchaseOrderListener에서 처리
+        if (event.isSuccess()) return;
+
         Long gpId = event.getGroupPurchaseId();
 
         GroupPurchase gp = groupPurchaseRepository.findById(gpId)
@@ -44,40 +47,23 @@ public class GroupPurchaseNotificationListener {
                 );
 
         for (GroupPurchaseParticipation participation : participants) {
-
             Long userId = participation.getUser().getId();
-
-            if (event.isSuccess()) {
-
-                notificationService.create(
-                        userId,
-                        NotificationStatus.GROUP_PURCHASE_SUCCESS,
-                        "[" + title + "] 공동구매가 목표인원 달성을 성공하였습니다."
-
-                );
-
-            } else {
-
-                notificationService.create(
-                        userId,
-                        NotificationStatus.GROUP_PURCHASE_FAILED,
-                        "[" + title + "] 공동구매가 목표인원 달성을 실패했습니다."
-                );
-            }
+            notificationService.create(
+                    userId,
+                    NotificationStatus.GROUP_PURCHASE_FAILED,
+                    "[" + title + "] 공동구매가 목표인원 달성을 실패했습니다."
+            );
         }
 
-        log.info("공동구매 종료 알림 생성 완료 id={}", gpId);
-        log.info("NotificationListener 종료");
+        log.info("공동구매 실패 알림 생성 완료 id={}", gpId);
     }
 
     @EventListener
     public void handle(OrderPaidEvent event) {
-
         notificationService.createOrderPaid(
                 event.getUserId(),
                 event.getGroupPurchaseTitle()
         );
-
         log.info("결제 완료 알림 생성 orderId={}", event.getOrderId());
     }
 }

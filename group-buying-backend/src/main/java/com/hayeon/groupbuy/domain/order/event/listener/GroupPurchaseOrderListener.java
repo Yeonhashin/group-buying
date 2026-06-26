@@ -6,8 +6,7 @@ import com.hayeon.groupbuy.domain.groupPurchase.participation.entity.GroupPurcha
 import com.hayeon.groupbuy.domain.groupPurchase.repository.GroupPurchaseParticipationRepository;
 import com.hayeon.groupbuy.domain.order.service.OrderService;
 import com.hayeon.groupbuy.domain.notification.service.NotificationService;
-import com.hayeon.groupbuy.domain.order.event.OrderCanceledEvent;
-
+import com.hayeon.groupbuy.domain.notification.enums.NotificationStatus;
 import com.hayeon.groupbuy.domain.groupPurchase.entity.GroupPurchase;
 import com.hayeon.groupbuy.domain.groupPurchase.repository.GroupPurchaseRepository;
 
@@ -18,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Propagation;
 
 import java.util.List;
 
@@ -33,15 +33,14 @@ public class GroupPurchaseOrderListener {
     private final GroupPurchaseRepository groupPurchaseRepository;
 
     @EventListener
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void handle(GroupPurchaseClosedEvent event) {
 
         if (!event.isSuccess()) {
             return;
         }
 
-        log.info("GroupPurchaseOrderListener 시작 gpId={}",
-                event.getGroupPurchaseId());
+        log.info("GroupPurchaseOrderListener 시작 gpId={}", event.getGroupPurchaseId());
 
         Long gpId = event.getGroupPurchaseId();
 
@@ -61,32 +60,21 @@ public class GroupPurchaseOrderListener {
             Long userId = p.getUser().getId();
 
             try {
+                Long orderId = orderService.createOrder(userId, gpId);
 
-                Long orderId =
-                        orderService.createOrder(
-                                userId,
-                                gpId
-                        );
+                log.info("주문 생성 완료 orderId={}, userId={}, gpId={}", orderId, userId, gpId);
 
-                log.info(
-                        "주문 생성 완료 orderId={}, userId={}, gpId={}",
-                        orderId,
+                // 주문 생성 성공 후 알림 발송
+                notificationService.createOrderCreated(userId, title);
+                notificationService.create(
                         userId,
-                        gpId
-                );
-
-                notificationService.createOrderCreated(
-                        userId,
-                        title
+                        NotificationStatus.GROUP_PURCHASE_SUCCESS,
+                        "[" + title + "] 공동구매가 목표인원 달성을 성공하였습니다."
                 );
 
             } catch (IllegalStateException e) {
-
-                log.warn(
-                        "이미 주문 존재 userId={}, gpId={}",
-                        userId,
-                        gpId
-                );
+                log.warn("이미 주문 존재 userId={}, gpId={}", userId, gpId);
+                // 이미 주문 있으면 알림 발송 안 함
             }
         }
 

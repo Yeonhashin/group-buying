@@ -13,6 +13,8 @@ import com.hayeon.groupbuy.domain.order.event.OrderCanceledEvent;
 import com.hayeon.groupbuy.domain.order.event.OrderPaidEvent;
 
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Propagation;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,7 +43,7 @@ public class OrderService {
     }
 
     // ===== 주문 생성 (테스트용) =====
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Long createOrder(Long userId, Long gpId) {
 
         GroupPurchase gp = groupPurchaseRepository.findById(gpId)
