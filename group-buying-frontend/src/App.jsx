@@ -9,6 +9,7 @@ import GroupPurchaseListPage from "./pages/GroupPurchaseListPage/GroupPurchaseLi
 import GroupPurchaseDetailPage from "./pages/GroupPurchaseDetailPage/GroupPurchaseDetailPage.jsx";
 import GroupPurchaseFormPage from "./pages/GroupPurchaseFormPage/GroupPurchaseFormPage.jsx";
 import MyPage from "./pages/MyPage/MyPage.jsx";
+import SellerMyPage from "./pages/SellerMyPage/SellerMyPage.jsx";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 import Layout from "./components/Layout";
@@ -20,7 +21,7 @@ function App() {
             <Toaster position="top-center" />
 
             <Routes>
-                <Route path="/" element={<Navigate to="/products" replace />} />
+                <Route path="/" element={<Navigate to="/group-purchases" replace />} />
 
                 {/* 헤더 없는 인증 페이지 */}
                 <Route path="/signup" element={<SignupPage />} />
@@ -40,6 +41,16 @@ function App() {
                         </ProtectedRoute>
                     }
                 />
+
+                <Route
+                    path="/seller/mypage"
+                    element={
+                        <ProtectedRoute>
+                            <Layout><SellerMyPage /></Layout>
+                        </ProtectedRoute>
+                    }
+                />
+
                 <Route
                     path="/products/create"
                     element={

@@ -78,6 +78,31 @@ const RegisterForm = () => {
                 {errors.nickname && <p className="mt-1 text-xs text-red-500">{errors.nickname.message}</p>}
             </div>
 
+            {/* 회원 유형 */}
+            <div className="mb-6">
+                <p className="text-sm font-medium text-gray-700 mb-2">회원 유형</p>
+                <div className="flex gap-3">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                            type="radio"
+                            value="BUYER"
+                            {...register("role", { required: "회원 유형을 선택해주세요" })}
+                            defaultChecked
+                        />
+                        <span className="text-sm text-gray-700">일반 유저</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                            type="radio"
+                            value="SELLER"
+                            {...register("role", { required: "회원 유형을 선택해주세요" })}
+                        />
+                        <span className="text-sm text-gray-700">판매자</span>
+                    </label>
+                </div>
+                {errors.role && <p className="mt-1 text-xs text-red-500">{errors.role.message}</p>}
+            </div>
+
             <button
                 type="submit"
                 className="w-full bg-indigo-600 text-white py-2.5 rounded-lg text-sm font-semibold hover:bg-indigo-700 transition-colors"

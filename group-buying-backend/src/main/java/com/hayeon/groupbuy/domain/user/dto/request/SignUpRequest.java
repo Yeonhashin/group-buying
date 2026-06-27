@@ -1,5 +1,6 @@
 package com.hayeon.groupbuy.domain.user.dto.request;
 
+import com.hayeon.groupbuy.domain.user.enums.UserRole;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -9,7 +10,6 @@ import lombok.*;
 @Setter
 @NoArgsConstructor
 public class SignUpRequest {
-
     @Email(message = "올바른 이메일 형식이 아닙니다.")
     @NotBlank(message = "이메일은 필수입니다.")
     private String email;
@@ -21,4 +21,6 @@ public class SignUpRequest {
     @NotBlank(message = "닉네임은 필수입니다.")
     @Size(min = 2, max = 5, message = "닉네임은 2~5자입니다.")
     private String nickname;
+
+    private UserRole role;
 }

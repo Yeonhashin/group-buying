@@ -8,6 +8,8 @@ import com.hayeon.groupbuy.domain.groupPurchase.dto.response.GroupPurchaseEditRe
 
 import com.hayeon.groupbuy.domain.groupPurchase.service.GroupPurchaseService;
 import com.hayeon.groupbuy.global.response.CommonResponse;
+import com.hayeon.groupbuy.domain.groupPurchase.dto.response.SellerGroupPurchaseResponse;
+import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -67,5 +69,12 @@ public class GroupPurchaseController {
     ) {
         GroupPurchaseResponse response = groupPurchaseService.findGroupPurchaseById(id);
         return ResponseEntity.ok(CommonResponse.success(response));
+    }
+
+    @GetMapping("/my")
+    public ResponseEntity<CommonResponse<List<SellerGroupPurchaseResponse>>> getMyGroupPurchases() {
+        return ResponseEntity.ok(
+                CommonResponse.success(groupPurchaseService.getMyGroupPurchases())
+        );
     }
 }

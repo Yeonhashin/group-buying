@@ -2,9 +2,10 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore";
 
 export default function Header() {
-    const { isLoggedIn, logout } = useAuthStore();
+    const { isLoggedIn, logout, role } = useAuthStore();
     const navigate = useNavigate();
     const location = useLocation();
+    const isSeller = role === "SELLER";
 
     const handleLogout = () => {
         logout();
@@ -16,24 +17,26 @@ export default function Header() {
     return (
         <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
             <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
-
                 {/* 로고 */}
-                <Link to="/products" className="text-xl font-bold text-indigo-600 hover:text-indigo-700">
+                <Link to= "/group-purchases" className="text-xl font-bold text-indigo-600 hover:text-indigo-700">
                     공동구매
                 </Link>
 
                 {/* 네비게이션 */}
                 <nav className="flex items-center gap-6">
-                    <Link
-                        to="/products"
-                        className={`text-sm font-medium transition-colors ${
-                            isActive("/products")
-                                ? "text-indigo-600 border-b-2 border-indigo-600 pb-0.5"
-                                : "text-gray-600 hover:text-gray-900"
-                        }`}
-                    >
-                        상품 목록
-                    </Link>
+                    {/* 상품 목록 - 판매자만 표시 */}
+                    {isSeller && (
+                        <Link
+                            to="/products"
+                            className={`text-sm font-medium transition-colors ${
+                                isActive("/products")
+                                    ? "text-indigo-600 border-b-2 border-indigo-600 pb-0.5"
+                                    : "text-gray-600 hover:text-gray-900"
+                            }`}
+                        >
+                            상품 목록
+                        </Link>
+                    )}
                     <Link
                         to="/group-purchases"
                         className={`text-sm font-medium transition-colors ${
@@ -51,10 +54,10 @@ export default function Header() {
                     {isLoggedIn ? (
                         <>
                             <Link
-                                to="/mypage"
+                                to={isSeller ? "/seller/mypage" : "/mypage"}
                                 className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
                             >
-                                마이페이지
+                                {isSeller ? "판매자 페이지" : "마이페이지"}
                             </Link>
                             <button
                                 onClick={handleLogout}

@@ -10,7 +10,11 @@ const GroupPurchaseListPage = () => {
     const [page, setPage] = useState(0);
     const [keyword, setKeyword] = useState("");
     const [onlyRecruiting, setOnlyRecruiting] = useState(false);
+
     const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
+    const role = useAuthStore((state) => state.role);
+    const isSeller = role === "SELLER";
+
     const navigate = useNavigate();
 
     const { data, isLoading, isError } = useGroupPurchases({ page, size: 9, keyword, onlyRecruiting });
@@ -26,7 +30,7 @@ const GroupPurchaseListPage = () => {
         <div>
             <div className="flex items-center justify-between mb-6">
                 <h1 className="text-2xl font-bold text-gray-900">공동구매 목록</h1>
-                {isLoggedIn && (
+                {isLoggedIn && isSeller && (
                     <button
                         onClick={() => navigate("/group-purchases/create")}
                         className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors"

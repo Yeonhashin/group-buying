@@ -30,14 +30,14 @@ public class AuthService {
         }
 
         // 3. JWT 생성
-        // return jwtProvider.createToken(user.getId());
-        String token = jwtProvider.createToken(user.getId());
+        String token = jwtProvider.createToken(user.getId(), user.getRole());
 
         // 4. 응답
         return new LoginResponse(
                 token,
                 user.getId(),
-                user.getNickname()
+                user.getNickname(),
+                user.getRole()
         );
     }
 }

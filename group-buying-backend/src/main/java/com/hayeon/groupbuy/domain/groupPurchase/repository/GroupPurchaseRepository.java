@@ -53,9 +53,15 @@ public interface GroupPurchaseRepository extends JpaRepository<GroupPurchase, Lo
     boolean existsByProductId(Long productId);
 
     /**
-     * 🔥 상세 조회 전용 (핵심)
+     * 상세 조회 전용
      */
     @EntityGraph(attributePaths = {"product", "user"})
     @Query("SELECT gp FROM GroupPurchase gp WHERE gp.id = :id")
     Optional<GroupPurchase> findDetailById(@Param("id") Long id);
+
+    /**
+     * 판매자 조회
+     */
+    @EntityGraph(attributePaths = {"product", "user"})
+    List<GroupPurchase> findByUserIdAndDeleteDtIsNull(Long userId);
 }

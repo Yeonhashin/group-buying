@@ -51,6 +51,8 @@ public class SecurityConfig {
                 )
 
                 .authorizeHttpRequests(auth -> auth
+                        // OPTIONS 요청 전체 허용 (CORS preflight)
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
                         // 이미지 접근 허용
                         .requestMatchers("/images/**").permitAll()
@@ -64,9 +66,16 @@ public class SecurityConfig {
                         // 상품 조회는 공개
                         .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
 
-                        // 상품 등록/수정/삭제는 로그인 필요
-                        .requestMatchers("/api/products/**").authenticated()
+                        // 상품 등록/수정/삭제는 SELLER만
+                        .requestMatchers("/api/products/**").hasRole("SELLER")
+
+                        // 공동구매 조회는 공개
                         .requestMatchers(HttpMethod.GET, "/api/group-purchases/**").permitAll()
+
+                        // 공동구매 생성/수정은 SELLER만
+                        .requestMatchers(HttpMethod.POST, "/api/group-purchases").hasRole("SELLER")
+                        .requestMatchers(HttpMethod.PATCH, "/api/group-purchases/**").hasRole("SELLER")
+
                         // 나머지는 인증 필요
                         .anyRequest().authenticated()
                 )
@@ -84,6 +93,7 @@ public class SecurityConfig {
 
         configuration.setAllowedOrigins(List.of(
                 "http://localhost:5173",
+                "http://localhost:5174",
                 "https://group-buying-three.vercel.app"
         ));
         configuration.setAllowedMethods(List.of("GET","POST","PUT","PATCH","DELETE","OPTIONS"));

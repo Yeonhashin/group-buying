@@ -11,7 +11,10 @@ const ProductListPage = () => {
     const [page, setPage] = useState(0);
 
     const navigate = useNavigate();
+
     const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
+    const role = useAuthStore((state) => state.role);
+    const isSeller = role === "SELLER";
 
     const { data, isLoading, isError } = useProducts({ page, keyword });
 
@@ -26,7 +29,7 @@ const ProductListPage = () => {
         <div>
             <div className="flex items-center justify-between mb-6">
                 <h1 className="text-2xl font-bold text-gray-900">상품 목록</h1>
-                {isLoggedIn && (
+                {isLoggedIn && isSeller && (
                     <button
                         className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors"
                         onClick={() => navigate("/products/create")}

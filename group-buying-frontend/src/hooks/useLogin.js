@@ -19,7 +19,7 @@ export default function useLogin() {
             console.log("login response:", res);
 
             // JWT 저장
-            const { accessToken, userId, nickname } = res.data;
+            const { accessToken, userId, nickname, role } = res.data;
             localStorage.setItem("accessToken", accessToken);
             localStorage.setItem(
                 "user",
@@ -30,6 +30,7 @@ export default function useLogin() {
             setAuth({
                 accessToken,
                 user: { id: userId, nickname },
+                role,
             });
 
             navigate("/");

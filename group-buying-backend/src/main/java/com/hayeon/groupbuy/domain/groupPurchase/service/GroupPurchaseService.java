@@ -21,6 +21,7 @@ import com.hayeon.groupbuy.global.exception.ConflictException;
 import com.hayeon.groupbuy.global.exception.ResourceNotFoundException;
 import com.hayeon.groupbuy.global.exception.UnauthorizedException;
 import com.hayeon.groupbuy.global.security.SecurityUtil;
+import com.hayeon.groupbuy.domain.groupPurchase.dto.response.SellerGroupPurchaseResponse;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -194,5 +195,19 @@ public class GroupPurchaseService {
                         userId,
                         ParticipationStatus.ACTIVE
                 );
+    }
+
+    public List<SellerGroupPurchaseResponse> getMyGroupPurchases() {
+        Long userId = SecurityUtil.getCurrentUserId()
+                .orElseThrow(() -> new UnauthorizedException("로그인이 필요합니다."));
+
+        List<GroupPurchase> list = groupPurchaseRepository.findByUserIdAndDeleteDtIsNull(userId);
+
+        return list.stream()
+                .map(gp -> {
+                    int count = getCurrentParticipants(gp.getId());
+                    return SellerGroupPurchaseResponse.from(gp, count);
+                })
+                .toList();
     }
 }

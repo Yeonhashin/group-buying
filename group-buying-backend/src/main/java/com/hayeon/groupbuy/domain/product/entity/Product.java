@@ -1,6 +1,6 @@
 package com.hayeon.groupbuy.domain.product.entity;
 
-import com.hayeon.groupbuy.domain.user.entity.User; // 🔥 추가
+import com.hayeon.groupbuy.domain.user.entity.User; //  추가
 
 import jakarta.persistence.*;
 import org.hibernate.annotations.SQLRestriction;

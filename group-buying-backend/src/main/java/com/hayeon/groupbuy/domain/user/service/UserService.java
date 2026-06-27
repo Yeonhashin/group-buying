@@ -33,7 +33,8 @@ public class UserService {
         User user = User.create(
                 request.getEmail(),
                 encodedPassword,
-                request.getNickname()
+                request.getNickname(),
+                request.getRole()
         );
 
         // 4. 저장

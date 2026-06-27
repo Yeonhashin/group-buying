@@ -91,7 +91,7 @@ public record GroupPurchaseResponse(
 
     private static String calculateRemainingTime(GroupPurchase groupPurchase) {
 
-        if (groupPurchase.getStatus() != GroupPurchaseStatus.RECRUITING) {
+        if (groupPurchase.getStatus() == GroupPurchaseStatus.FAILED) {
             return "마감";
         }
 

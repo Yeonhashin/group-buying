@@ -38,7 +38,7 @@ import java.util.Map;
 public class ProductService {
 
     private final ProductRepository productRepository;
-    private final UserRepository userRepository; // 🔥 추가
+    private final UserRepository userRepository; //  추가
     private final GroupPurchaseRepository groupPurchaseRepository;
     private final Cloudinary cloudinary;
 
@@ -68,7 +68,6 @@ public class ProductService {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("상품이 존재하지 않습니다."));
 
-        // 🔥 핵심 수정
         if (!product.getUser().getId().equals(userId)) {
             throw new UnauthorizedException("수정 권한이 없습니다.");
         }
