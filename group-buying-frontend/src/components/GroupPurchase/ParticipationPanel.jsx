@@ -15,7 +15,11 @@ const ParticipationPanel = ({ groupPurchase }) => {
     const queryClient = useQueryClient();
     const joinMutation = useJoinGroupPurchase(id);
     const cancelMutation = useCancelGroupPurchase(id);
+
     const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
+    const role = useAuthStore((state) => state.role);
+    const isSeller = role === "SELLER";
+
     const [modalType, setModalType] = useState(null);
 
     const isRecruiting = status === "RECRUITING";
@@ -50,7 +54,11 @@ const ParticipationPanel = ({ groupPurchase }) => {
 
     let buttonText, buttonClass, onClick, disabled = false;
 
-    if (isUpcoming) {
+    if (isSeller) {
+        buttonText = "판매자는 참여할 수 없습니다";
+        buttonClass = "bg-gray-200 text-gray-400 cursor-not-allowed";
+        disabled = true;
+    } else if (isUpcoming) {
         buttonText = formatStartDate(startDt);
         buttonClass = "bg-gray-200 text-gray-500 cursor-not-allowed";
         disabled = true;

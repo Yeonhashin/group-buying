@@ -9,6 +9,7 @@ import { useAuthStore } from "../../store/useAuthStore.js";
 const ProductListPage = () => {
     const [keyword, setKeyword] = useState("");
     const [page, setPage] = useState(0);
+    const [onlyMine, setOnlyMine] = useState(false);
 
     const navigate = useNavigate();
 
@@ -16,14 +17,14 @@ const ProductListPage = () => {
     const role = useAuthStore((state) => state.role);
     const isSeller = role === "SELLER";
 
-    const { data, isLoading, isError } = useProducts({ page, keyword });
+    const { data, isLoading, isError } = useProducts({ page, keyword, onlyMine });
+
+    if (isLoading) return <div className="text-center py-20 text-gray-500">상품을 불러오는 중...</div>;
+    if (isError) return <div className="text-center py-20 text-red-500">상품 조회에 실패했습니다.</div>;
 
     const products = data?.content || [];
     const totalPages = data?.totalPages || 0;
     const totalCount = data?.totalElements || 0;
-
-    if (isLoading) return <div className="text-center py-20 text-gray-500">상품을 불러오는 중...</div>;
-    if (isError) return <div className="text-center py-20 text-red-500">상품 조회에 실패했습니다.</div>;
 
     return (
         <div>
@@ -40,6 +41,18 @@ const ProductListPage = () => {
             </div>
 
             <SearchBar keyword={keyword} setKeyword={setKeyword} setPage={setPage} />
+
+            {isSeller && (
+                <label className="mt-3 flex items-center gap-2 cursor-pointer select-none text-sm text-gray-600">
+                    <input
+                        type="checkbox"
+                        checked={onlyMine}
+                        onChange={(e) => { setOnlyMine(e.target.checked); setPage(0); }}
+                        className="w-4 h-4 accent-indigo-600"
+                    />
+                    내 상품만 보기
+                </label>
+            )}
 
             <p className="mt-4 mb-2 text-sm text-gray-500">
                 {keyword ? `"${keyword}" 검색 결과 ${totalCount}개` : `총 ${totalCount}개의 상품`}

@@ -95,21 +95,37 @@ public class GroupPurchaseService {
         groupPurchase.updateFromDto(request);
     }
 
-    public GroupPurchasePageResponse getGroupPurchases(int page, int size, String keyword, boolean onlyRecruiting) {
+    public GroupPurchasePageResponse getGroupPurchases(int page, int size, String keyword, boolean onlyRecruiting, boolean onlyMine) {
         PageRequest pageRequest =
                 PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createDt"));
         Page<GroupPurchase> groupPurchases;
-
         boolean hasKeyword = keyword != null && !keyword.isBlank();
 
-        if (onlyRecruiting && hasKeyword) {
-            groupPurchases = groupPurchaseRepository.findActiveByStatusAndTitleOrProductName(GroupPurchaseStatus.RECRUITING, LocalDate.now(), keyword, pageRequest);
-        } else if (onlyRecruiting) {
-            groupPurchases = groupPurchaseRepository.findActiveByStatus(GroupPurchaseStatus.RECRUITING, LocalDate.now(), pageRequest);
-        } else if (hasKeyword) {
-            groupPurchases = groupPurchaseRepository.findByTitleOrProductName(keyword, pageRequest);
+        // 내 상품만 보기
+        if (onlyMine) {
+            Long userId = SecurityUtil.getCurrentUserId().orElse(null);
+            if (userId == null) {
+                return new GroupPurchasePageResponse(List.of(), page, size, 0, 0);
+            }
+            if (onlyRecruiting && hasKeyword) {
+                groupPurchases = groupPurchaseRepository.findByUserIdAndStatusAndKeyword(userId, GroupPurchaseStatus.RECRUITING, LocalDate.now(), keyword, pageRequest);
+            } else if (onlyRecruiting) {
+                groupPurchases = groupPurchaseRepository.findByUserIdAndStatus(userId, GroupPurchaseStatus.RECRUITING, LocalDate.now(), pageRequest);
+            } else if (hasKeyword) {
+                groupPurchases = groupPurchaseRepository.findByUserIdAndKeyword(userId, keyword, pageRequest);
+            } else {
+                groupPurchases = groupPurchaseRepository.findByUserId(userId, pageRequest);
+            }
         } else {
-            groupPurchases = groupPurchaseRepository.findAll(pageRequest);
+            if (onlyRecruiting && hasKeyword) {
+                groupPurchases = groupPurchaseRepository.findActiveByStatusAndTitleOrProductName(GroupPurchaseStatus.RECRUITING, LocalDate.now(), keyword, pageRequest);
+            } else if (onlyRecruiting) {
+                groupPurchases = groupPurchaseRepository.findActiveByStatus(GroupPurchaseStatus.RECRUITING, LocalDate.now(), pageRequest);
+            } else if (hasKeyword) {
+                groupPurchases = groupPurchaseRepository.findByTitleOrProductName(keyword, pageRequest);
+            } else {
+                groupPurchases = groupPurchaseRepository.findAll(pageRequest);
+            }
         }
 
         List<GroupPurchaseResponse> content = groupPurchases.getContent()
@@ -117,12 +133,7 @@ public class GroupPurchaseService {
                 .map(gp -> {
                     int currentParticipants = getCurrentParticipants(gp.getId());
                     boolean isParticipated = isParticipated(gp.getId());
-
-                    return GroupPurchaseResponse.from(
-                            gp,
-                            currentParticipants,
-                            isParticipated
-                    );
+                    return GroupPurchaseResponse.from(gp, currentParticipants, isParticipated);
                 })
                 .toList();
 

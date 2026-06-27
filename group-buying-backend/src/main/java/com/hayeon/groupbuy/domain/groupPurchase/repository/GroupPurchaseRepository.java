@@ -64,4 +64,21 @@ public interface GroupPurchaseRepository extends JpaRepository<GroupPurchase, Lo
      */
     @EntityGraph(attributePaths = {"product", "user"})
     List<GroupPurchase> findByUserIdAndDeleteDtIsNull(Long userId);
+
+
+    @EntityGraph(attributePaths = {"product", "user"})
+    @Query("SELECT gp FROM GroupPurchase gp WHERE gp.user.id = :userId AND gp.deleteDt IS NULL")
+    Page<GroupPurchase> findByUserId(@Param("userId") Long userId, Pageable pageable);
+
+    @EntityGraph(attributePaths = {"product", "user"})
+    @Query("SELECT gp FROM GroupPurchase gp WHERE gp.user.id = :userId AND gp.deleteDt IS NULL AND (gp.title LIKE %:keyword% OR gp.product.name LIKE %:keyword%)")
+    Page<GroupPurchase> findByUserIdAndKeyword(@Param("userId") Long userId, @Param("keyword") String keyword, Pageable pageable);
+
+    @EntityGraph(attributePaths = {"product", "user"})
+    @Query("SELECT gp FROM GroupPurchase gp WHERE gp.user.id = :userId AND gp.status = :status AND gp.startDt <= :today AND gp.deleteDt IS NULL")
+    Page<GroupPurchase> findByUserIdAndStatus(@Param("userId") Long userId, @Param("status") GroupPurchaseStatus status, @Param("today") LocalDate today, Pageable pageable);
+
+    @EntityGraph(attributePaths = {"product", "user"})
+    @Query("SELECT gp FROM GroupPurchase gp WHERE gp.user.id = :userId AND gp.status = :status AND gp.startDt <= :today AND gp.deleteDt IS NULL AND (gp.title LIKE %:keyword% OR gp.product.name LIKE %:keyword%)")
+    Page<GroupPurchase> findByUserIdAndStatusAndKeyword(@Param("userId") Long userId, @Param("status") GroupPurchaseStatus status, @Param("today") LocalDate today, @Param("keyword") String keyword, Pageable pageable);
 }

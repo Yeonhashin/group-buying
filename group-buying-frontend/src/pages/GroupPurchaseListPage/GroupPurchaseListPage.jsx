@@ -10,6 +10,7 @@ const GroupPurchaseListPage = () => {
     const [page, setPage] = useState(0);
     const [keyword, setKeyword] = useState("");
     const [onlyRecruiting, setOnlyRecruiting] = useState(false);
+    const [onlyMine, setOnlyMine] = useState(false);
 
     const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
     const role = useAuthStore((state) => state.role);
@@ -17,7 +18,7 @@ const GroupPurchaseListPage = () => {
 
     const navigate = useNavigate();
 
-    const { data, isLoading, isError } = useGroupPurchases({ page, size: 9, keyword, onlyRecruiting });
+    const { data, isLoading, isError } = useGroupPurchases({ page, size: 9, keyword, onlyRecruiting, onlyMine });
 
     if (isLoading) return <div className="text-center py-20 text-gray-500">불러오는 중...</div>;
     if (isError) return <div className="text-center py-20 text-red-500">데이터를 불러오지 못했습니다.</div>;
@@ -41,6 +42,7 @@ const GroupPurchaseListPage = () => {
             </div>
 
             <SearchBar keyword={keyword} setKeyword={setKeyword} setPage={setPage} placeholder="공동구매명 또는 상품명으로 검색" />
+
             <label className="mt-3 flex items-center gap-2 cursor-pointer select-none text-sm text-gray-600">
                 <input
                     type="checkbox"
@@ -50,6 +52,18 @@ const GroupPurchaseListPage = () => {
                 />
                 진행중인 공동구매만 보기
             </label>
+
+            {isSeller && (
+                <label className="mt-2 flex items-center gap-2 cursor-pointer select-none text-sm text-gray-600">
+                    <input
+                        type="checkbox"
+                        checked={onlyMine}
+                        onChange={(e) => { setOnlyMine(e.target.checked); setPage(0); }}
+                        className="w-4 h-4 accent-indigo-600"
+                    />
+                    내 공동구매만 보기
+                </label>
+            )}
 
             <p className="mt-4 mb-2 text-sm text-gray-500">
                 {keyword ? `"${keyword}" 검색 결과 ${totalElements}개` : `총 ${totalElements}개의 공동구매`}

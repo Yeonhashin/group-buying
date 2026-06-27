@@ -3,9 +3,8 @@ import { apiFetch } from "./apiClient";
 /**
  * 상품 목록 조회
  */
-export const getProducts = async ({ page = 0, size = 9, keyword = "" }) => {
-    const res = await apiFetch(`/api/products?page=${page}&size=${size}&keyword=${keyword}`);
-    return res.data;
+export const getProducts = async ({ page = 0, size = 9, keyword = "", onlyMine = false }) => {
+    return apiFetch(`/api/products?page=${page}&size=${size}&keyword=${keyword}&onlyMine=${onlyMine}`);
 };
 
 /**

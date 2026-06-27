@@ -81,17 +81,30 @@ public class ProductService {
         product.update(name, details, imageUrl, price, stock);
     }
 
-    public ProductPageResponse getProductList(int page, int size, String keyword) {
+    public ProductPageResponse getProductList(int page, int size, String keyword, boolean onlyMine) {
 
         PageRequest pageRequest =
                 PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createDt"));
 
         Page<Product> products;
+        boolean hasKeyword = keyword != null && !keyword.isBlank();
 
-        if (keyword != null && !keyword.isBlank()) {
-            products = productRepository.findByNameContainingOrDetailsContaining(keyword, keyword, pageRequest);
+        if (onlyMine) {
+            Long userId = SecurityUtil.getCurrentUserId().orElse(null);
+            if (userId == null) {
+                return new ProductPageResponse(List.of(), page, size, 0, 0);
+            }
+            if (hasKeyword) {
+                products = productRepository.findByUserIdAndKeyword(userId, keyword, pageRequest);
+            } else {
+                products = productRepository.findByUserId(userId, pageRequest);
+            }
         } else {
-            products = productRepository.findAll(pageRequest);
+            if (hasKeyword) {
+                products = productRepository.findByNameContainingOrDetailsContaining(keyword, keyword, pageRequest);
+            } else {
+                products = productRepository.findAll(pageRequest);
+            }
         }
 
         List<ProductResponse> content = products.getContent()

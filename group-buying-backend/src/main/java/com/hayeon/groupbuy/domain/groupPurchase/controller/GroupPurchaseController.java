@@ -57,10 +57,11 @@ public class GroupPurchaseController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String keyword,
-            @RequestParam(defaultValue = "false") boolean onlyRecruiting
+            @RequestParam(defaultValue = "false") boolean onlyRecruiting,
+            @RequestParam(defaultValue = "false") boolean onlyMine
     ) {
         return ResponseEntity.ok(
-                CommonResponse.success(groupPurchaseService.getGroupPurchases(page, size, keyword, onlyRecruiting)));
+                CommonResponse.success(groupPurchaseService.getGroupPurchases(page, size, keyword, onlyRecruiting, onlyMine)));
     }
 
     @GetMapping("/{id}")

@@ -3,13 +3,8 @@ import { apiFetch } from "./apiClient";
 /**
  * 공동구매 목록 조회
  */
-export const getGroupPurchases = ({ page, size, keyword, onlyRecruiting }) => {
-    return apiFetch(
-        `/api/group-purchases?page=${page}&size=${size}&keyword=${keyword ?? ""}&onlyRecruiting=${onlyRecruiting ?? false}`,
-        {
-            method: "GET",
-        }
-    );
+export const getGroupPurchases = ({ page, size, keyword, onlyRecruiting, onlyMine }) => {
+    return apiFetch(`/api/group-purchases?page=${page}&size=${size}&keyword=${keyword || ""}&onlyRecruiting=${onlyRecruiting}&onlyMine=${onlyMine || false}`);
 };
 
 /**
