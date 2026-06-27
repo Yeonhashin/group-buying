@@ -41,10 +41,7 @@ public class GroupPurchaseParticipationService {
 
     // 컨트롤러에서 호출하는 퍼사드 메서드 (트랜잭션 밖)
     public void joinAndPublishEvent(Long id, JoinGroupPurchaseRequest request) {
-        Long completedId = join(id, request);
-        if (completedId != null) {
-            eventPublisher.publishEvent(new GroupPurchaseClosedEvent(completedId, true));
-        }
+        join(id, request);
     }
 
     @Transactional
@@ -98,12 +95,15 @@ public class GroupPurchaseParticipationService {
             groupPurchaseParticipationRepository.save(participation);
             notificationService.createParticipationJoined(userId, groupPurchase.getTitle());
 
-            // 목표 인원 달성 시 COMPLETED 처리, 이벤트 발행은 트랜잭션 밖에서
+            // 목표 인원 달성 시 COMPLETED 처리, 이벤트 발행 제거
             if (currentCount >= groupPurchase.getTargetParticipants()) {
                 groupPurchase.updateStatus(GroupPurchaseStatus.COMPLETED);
                 groupPurchaseRepository.save(groupPurchase);
-                return id; // 이벤트 발행 필요 신호
+                return id; // 더 이상 이벤트 발행 신호로 쓰지 않음
             }
+
+            return null;
+
 
         } catch (Exception e) {
             groupPurchaseCountRedisRepository.cancel(id);
@@ -120,8 +120,6 @@ public class GroupPurchaseParticipationService {
             }
             throw new RuntimeException("참여 처리 실패");
         }
-
-        return null;
     }
 
     @Transactional
@@ -140,6 +138,12 @@ public class GroupPurchaseParticipationService {
 
         if (participation.getStatus() != ParticipationStatus.ACTIVE) {
             throw new ConflictException("이미 취소된 공동구매입니다.");
+        }
+
+        // 종료일이 지났고 COMPLETED 상태면 취소 불가
+        if (groupPurchase.getStatus() == GroupPurchaseStatus.COMPLETED
+                && groupPurchase.getEndDt().isBefore(LocalDate.now())) {
+            throw new ConflictException("공동구매가 종료되어 취소할 수 없습니다.");
         }
 
         participation.setStatus(ParticipationStatus.CANCELED);

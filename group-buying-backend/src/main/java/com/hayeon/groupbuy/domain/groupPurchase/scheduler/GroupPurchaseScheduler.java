@@ -31,39 +31,63 @@ public class GroupPurchaseScheduler {
      * - COMPLETED 처리는 join() 에서 즉시 처리
      */
     @Scheduled(fixedDelay = 60000)
-    @Transactional
     public void updateGroupPurchaseStatus() {
 
-        List<GroupPurchase> list =
+        // 1. RECRUITING 상태 처리
+        List<GroupPurchase> recruitingList =
                 groupPurchaseRepository.findAllByStatusAndDeleteDtIsNull(
                         GroupPurchaseStatus.RECRUITING
                 );
 
         LocalDate now = LocalDate.now();
 
-        for (GroupPurchase gp : list) {
-
+        for (GroupPurchase gp : recruitingList) {
             Long gpId = gp.getId();
-
             try {
-                // 시작 전이면 skip
                 if (gp.getStartDt() != null && gp.getStartDt().isAfter(now)) {
                     continue;
                 }
-
-                // 종료일이 지난 경우 FAILED 처리
                 boolean isEndedByTime = gp.getEndDt() != null && !gp.getEndDt().isAfter(now);
-
                 if (isEndedByTime) {
-                    gp.updateStatus(GroupPurchaseStatus.FAILED);
-                    groupPurchaseRepository.save(gp);
-                    eventPublisher.publishEvent(new GroupPurchaseClosedEvent(gpId, false));
+                    processFailedGroupPurchase(gpId);
                     log.info("공동구매 만료 처리 id={}", gpId);
                 }
-
             } catch (Exception e) {
-                log.error("Scheduler 처리 실패 id={}, error={}", gpId, e.getMessage(), e);
+                log.error("Scheduler RECRUITING 처리 실패 id={}, error={}", gpId, e.getMessage(), e);
             }
         }
+
+        // 2. COMPLETED 상태 처리 (종료일 도달 시 주문 생성)
+        List<GroupPurchase> completedList =
+                groupPurchaseRepository.findAllByStatusAndDeleteDtIsNull(
+                        GroupPurchaseStatus.COMPLETED
+                );
+
+        for (GroupPurchase gp : completedList) {
+            Long gpId = gp.getId();
+            try {
+                boolean isEndedByTime = gp.getEndDt() != null && !gp.getEndDt().isAfter(now);
+                if (isEndedByTime) {
+                    processCompletedGroupPurchase(gpId);
+                    log.info("공동구매 완료 처리 id={}", gpId);
+                }
+            } catch (Exception e) {
+                log.error("Scheduler COMPLETED 처리 실패 id={}, error={}", gpId, e.getMessage(), e);
+            }
+        }
+    }
+
+    @Transactional
+    public void processFailedGroupPurchase(Long gpId) {
+        GroupPurchase gp = groupPurchaseRepository.findById(gpId)
+                .orElseThrow();
+        gp.updateStatus(GroupPurchaseStatus.FAILED);
+        groupPurchaseRepository.save(gp);
+        eventPublisher.publishEvent(new GroupPurchaseClosedEvent(gpId, false));
+    }
+
+    @Transactional
+    public void processCompletedGroupPurchase(Long gpId) {
+        eventPublisher.publishEvent(new GroupPurchaseClosedEvent(gpId, true));
     }
 }
